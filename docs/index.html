@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="generator" content="pandoc" />
+            <title>System to detect and localise garbage on the floor</title>
+                <style type="text/css">
+        code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode { white-space: pre; position: relative; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+        div.sourceCode { overflow: auto; }
+        }
+        @media print {
+        code.sourceCode { white-space: pre-wrap; }
+        code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+        }
+        pre.numberSource code
+          { counter-reset: source-line 0; }
+        pre.numberSource code > span
+          { position: relative; left: -4em; counter-increment: source-line; }
+        pre.numberSource code > span > a:first-child::before
+          { content: counter(source-line);
+            position: relative; left: -1em; text-align: right; vertical-align: baseline;
+            border: none; display: inline-block;
+            -webkit-touch-callout: none; -webkit-user-select: none;
+            -khtml-user-select: none; -moz-user-select: none;
+            -ms-user-select: none; user-select: none;
+            padding: 0 4px; width: 4em;
+            color: #aaaaaa;
+          }
+        pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+        div.sourceCode
+          {   }
+        @media screen {
+        code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+        }
+        code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+        code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+        code span.at { color: #7d9029; } /* Attribute */
+        code span.bn { color: #40a070; } /* BaseN */
+        code span.bu { } /* BuiltIn */
+        code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+        code span.ch { color: #4070a0; } /* Char */
+        code span.cn { color: #880000; } /* Constant */
+        code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+        code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+        code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+        code span.dt { color: #902000; } /* DataType */
+        code span.dv { color: #40a070; } /* DecVal */
+        code span.er { color: #ff0000; font-weight: bold; } /* Error */
+        code span.ex { } /* Extension */
+        code span.fl { color: #40a070; } /* Float */
+        code span.fu { color: #06287e; } /* Function */
+        code span.im { } /* Import */
+        code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+        code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+        code span.op { color: #666666; } /* Operator */
+        code span.ot { color: #007020; } /* Other */
+        code span.pp { color: #bc7a00; } /* Preprocessor */
+        code span.sc { color: #4070a0; } /* SpecialChar */
+        code span.ss { color: #bb6688; } /* SpecialString */
+        code span.st { color: #4070a0; } /* String */
+        code span.va { color: #19177c; } /* Variable */
+        code span.vs { color: #4070a0; } /* VerbatimString */
+        code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+        </style>
+                <link rel="stylesheet" href="style/style.css" />
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+        </head>
+<body>
+
+        <a id="forkme_banner" href="https://github.com/RaulLazaro/system-to-detect-and-localise-garbage-on-the-floor">Ver en GitHub</a>
+        <section id="downloads">
+                <a class="pdf_download_link" href="../docs/thesis.pdf">Download pdf</a>
+        </section>
+                <div id="TOC">
+            <ul>
+            <li><a href="#introduction"><span class="toc-section-number">1</span> Introduction</a><ul>
+            <li><a href="#background"><span class="toc-section-number">1.1</span> Background</a><ul>
+            <li><a href="#introducing-acro"><span class="toc-section-number">1.1.1</span> Introducing ACRO</a></li>
+            <li><a href="#introducing-colruyt-group"><span class="toc-section-number">1.1.2</span> Introducing Colruyt Group</a></li>
+            </ul></li>
+            <li><a href="#problem-description"><span class="toc-section-number">1.2</span> Problem description</a></li>
+            <li><a href="#contributions"><span class="toc-section-number">1.3</span> Contributions</a></li>
+            <li><a href="#summary-of-chapters"><span class="toc-section-number">1.4</span> Summary of chapters</a></li>
+            </ul></li>
+            <li><a href="#literature-survey"><span class="toc-section-number">2</span> Literature survey</a><ul>
+            <li><a href="#introduction-1"><span class="toc-section-number">2.1</span> Introduction</a></li>
+            <li><a href="#vision-methods"><span class="toc-section-number">2.2</span> Vision methods</a></li>
+            <li><a href="#traversability-analysis-methods"><span class="toc-section-number">2.3</span> Traversability analysis methods</a><ul>
+            <li><a href="#occupancy-map"><span class="toc-section-number">2.3.1</span> Occupancy map:</a></li>
+            <li><a href="#elevation-map"><span class="toc-section-number">2.3.2</span> Elevation map:</a></li>
+            <li><a href="#d-map"><span class="toc-section-number">2.3.3</span> 3D map:</a></li>
+            </ul></li>
+            <li><a href="#conclusions"><span class="toc-section-number">2.4</span> Conclusions</a></li>
+            </ul></li>
+            <li><a href="#implementation-of-dirt-detection"><span class="toc-section-number">3</span> Implementation of dirt detection</a><ul>
+            <li><a href="#introduction-2"><span class="toc-section-number">3.1</span> Introduction</a></li>
+            <li><a href="#learning-ros"><span class="toc-section-number">3.2</span> Learning ROS</a></li>
+            <li><a href="#knowing-turtlebot3"><span class="toc-section-number">3.3</span> Knowing Turtlebot3</a><ul>
+            <li><a href="#modifications"><span class="toc-section-number">3.3.1</span> Modifications</a></li>
+            </ul></li>
+            <li><a href="#results-of-the-mapping"><span class="toc-section-number">3.4</span> Results of the mapping</a><ul>
+            <li><a href="#image-of-the-color-camera"><span class="toc-section-number">3.4.1</span> Image of the color camera:</a></li>
+            <li><a href="#image-of-the-depth-camera"><span class="toc-section-number">3.4.2</span> Image of the depth camera:</a></li>
+            <li><a href="#map"><span class="toc-section-number">3.4.3</span> Map:</a></li>
+            </ul></li>
+            <li><a href="#implementation-of-the-computer-vision-algorithm"><span class="toc-section-number">3.5</span> Implementation of the computer vision algorithm</a><ul>
+            <li><a href="#color-threshold"><span class="toc-section-number">3.5.1</span> Color threshold:</a></li>
+            <li><a href="#morphological-operations"><span class="toc-section-number">3.5.2</span> Morphological operations:</a></li>
+            </ul></li>
+            <li><a href="#positioning-objects"><span class="toc-section-number">3.6</span> Positioning objects</a><ul>
+            <li><a href="#angle-and-distance"><span class="toc-section-number">3.6.1</span> Angle and distance:</a></li>
+            <li><a href="#point-cloud"><span class="toc-section-number">3.6.2</span> Point Cloud:</a></li>
+            </ul></li>
+            </ul></li>
+            <li><a href="#camera-calibration"><span class="toc-section-number">4</span> Camera calibration</a><ul>
+            <li><a href="#introduction-3"><span class="toc-section-number">4.1</span> Introduction</a></li>
+            <li><a href="#radlocc-toolbox"><span class="toc-section-number">4.2</span> RADLOCC Toolbox</a></li>
+            <li><a href="#point-cloud-to-laser-scan-and-2d-calibration"><span class="toc-section-number">4.3</span> Point cloud to laser scan and 2D calibration</a></li>
+            <li><a href="#third-point-method"><span class="toc-section-number">4.4</span> Third point method</a></li>
+            <li><a href="#conclusions-1"><span class="toc-section-number">4.5</span> Conclusions</a></li>
+            </ul></li>
+            <li><a href="#results-and-conclusions"><span class="toc-section-number">5</span> Results and conclusions</a><ul>
+            <li><a href="#introduction-4"><span class="toc-section-number">5.1</span> Introduction</a></li>
+            <li><a href="#tests"><span class="toc-section-number">5.2</span> Tests</a><ul>
+            <li><a href="#recognizing"><span class="toc-section-number">5.2.1</span> Recognizing</a></li>
+            <li><a href="#positioning"><span class="toc-section-number">5.2.2</span> Positioning</a></li>
+            </ul></li>
+            <li><a href="#future-work"><span class="toc-section-number">5.3</span> Future work</a></li>
+            <li><a href="#conclusion"><span class="toc-section-number">5.4</span> Conclusion</a></li>
+            </ul></li>
+            <li><a href="#appendix-1-code">Appendix 1: Code</a><ul>
+            <li><a href="#img_processing.cpp">img_processing.cpp</a></li>
+            <li><a href="#map_marker.cpp">map_marker.cpp</a></li>
+            <li><a href="#laser_measure.py">laser_measure.py</a></li>
+            <li><a href="#collect_data_node.py">collect_data_node.py</a></li>
+            </ul></li>
+            <li><a href="#bibliography">Bibliography</a></li>
+            </ul>
+        </div>
+                <div class="container">
+    <div id="title-page">
+        <h1>System to detect and localise garbage on the floor</h1>
+        <h2>Raúl Lázaro Sánchez</h2>
+        <h3>Diepenbeek, BE <br>June 2019</h3>
+    </div>
+    
+    <!-- This is the abstract -->
+    <h1 id="abstract" class="unnumbered">Abstract</h1>
+    <p>ACRO is a research group that is part of the Department of Mechanical Engineering of KU Leuven and is located in the Technology Center on the Diepenbeek campus. ACRO mainly focuses on the fields of vision and robotics and offers support to companies to integrate these technologies into their applications. One of these companies, Colruyt Group, is the largest supermarket chain in Belgium, desires to automate the cleaning processes of its stores. Nowadays, the cleaning of the floors of supermarkets is a tedious process and is currently done by human labour. First, employees have to clean the floor and remove dust and objects. Then, a scrubbing machines is employed to scrub the floor. Colruyt Group is already looking for a way to automate the scrubbing machines, but the floor is required to be free of any objects before scrubbing. The purpose of this work is to build a proof of concept of a system that detects and locates garbage on the floor of the supermarket to pick it up in a later stadium. The system should be mountable on any autonomous mobile platform that uses ROS. In this work, the TurtleBot3 has been used as a mobile platform on which a RGBD camera has been installed. For the detection of garbage, several vision methods have been integrated and compared, such as morphological operations, segmentation based on different color spaces, comparison of images and depth camera information. This project allows to demonstrate that is possible the automation of this process as well as serving as a basis for future works.</p>
+    <!-- Use the \newpage command to force a new page -->
+    
+    <h1 id="introduction"><span class="header-section-number">1</span> Introduction</h1>
+    <h2 id="background"><span class="header-section-number">1.1</span> Background</h2>
+    <h3 id="introducing-acro"><span class="header-section-number">1.1.1</span> Introducing ACRO</h3>
+    <p>The ACRO research group (Automation, Computer Vision and Robotics) is part of the Mechanical Engineering Department at KU Leuven and is located in the Technology Center on the Diepenbeek campus.</p>
+    <p>The main research topics of ACRO lies in the fields of vision and robotics, combining them in an innovative and effective way to offer solutions where previously they were not possible.</p>
+    <p>They offer support to other companies to integrate these technologies in their applications.</p>
+    <p>The ACRO team provides official courses in PCL programming, as well as supervises master theses, from the educational program Electromechanics/Automation within the faculty of Engineering Technology, hosted jointly by Ku Leuven and UHasselt.</p>
+    <p>ACRO focuses on applications oriented to industrial research in the fields of automation and robotics. Current research topics include:</p>
+    <ul>
+    <li>Vision-based and model-based automation</li>
+    <li>Human-robot interaction and collaboration</li>
+    <li>Flexible product handling and robotic grippers</li>
+    <li>Collision-free trajectory generation and navigation</li>
+    <li>Semi-autonomous and autonomous (dis)assembly</li>
+    <li>Functional programming for robotics and the cloud</li>
+    </ul>
+    <h3 id="introducing-colruyt-group"><span class="header-section-number">1.1.2</span> Introducing Colruyt Group</h3>
+    <p>Colruyt Group is a Belgian multinational family distribution company that rules the Colruyt supermarkets that started in Lembeek, near Halle, Belgium.</p>
+    <p>Founded in 1925, the group today is known for its discount supermarket chain. Colruyt’s headquarters are based in Halle and they operate in the Benelux and France.</p>
+    <p>The group’s main business is its Colruyt discount supermarket stores. They have more than 200 locations in Belgium, it is the largest supermarket chain.</p>
+    <p>Colruyt Group can actually be divided into the logistics area (stores and warehousing) and the research and development department where they perform research mainly in the field of map building and mobile robotics.</p>
+    <h2 id="problem-description"><span class="header-section-number">1.2</span> Problem description</h2>
+    <p>Colruyt Group desires to automate the cleaning processes of its stores, specifically the cleaning of floors.</p>
+    <p>Nowadays, the process of cleaning the stores is performed manually: employees first clean the floor of dust and objects, and then pass the machines that scrub the floor.</p>
+    <p>The technology to clean the dust is surpassed with current autonomous vacuum cleaner robots.</p>
+    <p>Colruyt Group is already looking for a way to automate the scrubbing machines, but the floor is required to be free of any objects before scrubbing.</p>
+    <p>The purpose of this work is to build a proof of concept of a system that can be mounted on an autonomous mobile platform, to detect and localise garbage on the floor (inside a supermarket), and then to pick up the garbage.</p>
+    <p>The work done in this project is a first approach and serves as a basis for future work and also demonstrate that is possible the automation of this process.</p>
+    <h2 id="contributions"><span class="header-section-number">1.3</span> Contributions</h2>
+    <p>The contributions of this thesis lie in studying the state of the technologies necessary for the development of the project, testing different techniques and making decisions based on the results, always with the support of ACRO.</p>
+    <p>The topics in which this project contributes the most are:</p>
+    <ul>
+    <li>Automated camera laser scanner calibration</li>
+    <li>A technique based on vision to detect dirt on a floor</li>
+    <li>Made a test facility and tested the approach in a test environment</li>
+    </ul>
+    <h2 id="summary-of-chapters"><span class="header-section-number">1.4</span> Summary of chapters</h2>
+    <p>This is a brief outline of what went into each chapter. <strong>Chapter 2</strong> explains the literature that have been read and discuss the interesting topics. <strong>Chapter 3</strong> discusses the implementation of the techniques to detect the dirt. <strong>Chapter 4</strong> talks about the camera calibration. Finally <strong>Chapter 5</strong> shows the results and conclusions.</p>
+    <h1 id="literature-survey"><span class="header-section-number">2</span> Literature survey</h1>
+    <h2 id="introduction-1"><span class="header-section-number">2.1</span> Introduction</h2>
+    <p>For the development of this project, I searched and read some documentation and research papers. In this chapter, I will discuss and comment the interesting topics as well as the implementation them in the project.</p>
+    <p>I have searched for related projects, but it is a very specific problem, so there are not many projects that deal with it, that is why I have extended the research to any project related to autonomous platforms that recognize objects in dynamic environments.</p>
+    <p>The projects found use different technologies, either individually or combining them, such as cameras, distance sensors, machine learning…</p>
+    <p>I was also read traversability analysis papers, in which could read about different type of maps, how to create them and their uses.</p>
+    
+    <h2 id="vision-methods"><span class="header-section-number">2.2</span> Vision methods</h2>
+    <p>One of the related projects that inspires me was <span class="citation" data-cites="3D-SALM">(Robotis-Japan 2019)</span><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> that is a:</p>
+    <blockquote>
+    <p>“Sample repository for creating a three dimensional map of the environment in real-time and navigating through it. Object detection using YOLO is also performed, showing how neural networks can be used to take advantage of the image database stored by RTAB-Map and use it to e.g. localize objects in the map.”</p>
+    </blockquote>
+    <p>It uses the Turtlebot3 platform to which a RGBD camera has been installed, using the images of the cameras to recognize objects with the YOLO neural network <span class="citation" data-cites="Redmon2016YouOL">(Redmon et al. 2016)</span> and the depth image to position the objects on the map. In this project we can see the implementation of different techniques in a combination way.</p>
+    <figure>
+    <img src="source/figures/3D-SLAM-diagram.png" style="width:75.0%" alt="" /><figcaption>Operation diagram of a related project. </figcaption>
+    </figure>
+    <p>So at first my attention was focused on using the information from the cameras to detect garbage based on computer vision, a field already known by my. The first idea was to try to recognize the garbage making tests in Matlab and later using the Opencv library.</p>
+    
+    <h2 id="traversability-analysis-methods"><span class="header-section-number">2.3</span> Traversability analysis methods</h2>
+    <p>One of the most interesting papers about traversability analysis was <span class="citation" data-cites="guerrero:hal-01518756">(Guerrero et al. 2015)</span>. It talks about the different type of maps, how to create them and their uses.</p>
+    <p>Coming up next the types of maps found will be detailed, we will also talk about being able to integrate them into this project and its pros and cons.</p>
+    <h3 id="occupancy-map"><span class="header-section-number">2.3.1</span> Occupancy map:</h3>
+    <p>It is one of the most used methods for terrain mapping. Every cell in an occupancy map contains an occupancy probability which is used to determine if the cell is free, occupied or not explored. Figure  depicts an example of an occupancy grid map.</p>
+    <figure>
+    <img src="source/figures/occupancy-map.png" alt="" /><figcaption>Example of an occupancy grid map. </figcaption>
+    </figure>
+    <p>This is the kind of maps you can create with the Turtlebot3 right out of the box, just using odometry and laser information. Is very useful using them for the autonomous navigation of robots in plane floors and controlled environments.</p>
+    <h3 id="elevation-map"><span class="header-section-number">2.3.2</span> Elevation map:</h3>
+    <p>Alternatively to the occupancy map, an elevation map is a 2D grid in which every cell contains height values of the terrain mapped. Figure  is an example of an elevation map.</p>
+    <figure>
+    <img src="source/figures/elevation-map.jpg" style="width:75.0%" alt="" /><figcaption>Example of elevation map. </figcaption>
+    </figure>
+    <p>Elevation maps are also known as 2.5D maps. Similarly to the occupancy map, the computational requirements are not so important as for 3D mapping. An important disadvantage of 2.5D mapping is the fact that overhanging structures will be considered as obstacles.</p>
+    <p>They are very useful for moving robots in on uneven floors or to determine obstacles on the way. They are the most usable for the purpose of this project.</p>
+    <p>I found a ROS package<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> to create elevation maps with robots which are equipped with a pose estimation (e.g. IMU &amp; odometry) and a distance sensor (e.g. structured light (Kinect, RealSense), laser range sensor, stereo camera).</p>
+    <p>This package is based on the works of the papers <span class="citation" data-cites="Fankhauser2018ProbabilisticTerrainMapping">(Fankhauser et al. 2018)</span> and <span class="citation" data-cites="Fankhauser2014RobotCentricElevationMapping">(Fankhauser et al. 2014)</span> that I have also read.</p>
+    
+    <h3 id="d-map"><span class="header-section-number">2.3.3</span> 3D map:</h3>
+    <p>Figure  depicts an example of 3D map.</p>
+    <figure>
+    <img src="source/figures/3D-map.png" alt="" /><figcaption>Example of 3D map. </figcaption>
+    </figure>
+    <p>They are a type of maps more complete and easy to observe but at the same time they are difficult to obtain and manage given their high computational requirement.</p>
+    <p>For 3D mapping I found several package in ROS to create them with different approach, such as <span class="citation" data-cites="hornung13auro">(Hornung et al. 2013 )</span><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> or <span class="citation" data-cites="RTAB-Map">(Labbé &amp; Michaud 2019)</span>.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+    <h2 id="conclusions"><span class="header-section-number">2.4</span> Conclusions</h2>
+    <p>Finally we noticed two clear ideas to apply in our project to recognize objects on the floor:</p>
+    <ul>
+    <li><p>Image processing (OpenCV, neural networks…).</p></li>
+    <li><p>Using depth camera info to create different elevation maps of the terrain.</p></li>
+    </ul>
+    <p>In our case, a combination can be used by placing the 3D camera pointing to the ground, being able to detect the objects by distance and using OpenCV based on colors and shapes.</p>
+    <h1 id="implementation-of-dirt-detection"><span class="header-section-number">3</span> Implementation of dirt detection</h1>
+    <h2 id="introduction-2"><span class="header-section-number">3.1</span> Introduction</h2>
+    <p>In the following sections I will detail the work carried out during these months, detailing all the decisions taken.</p>
+    <p>This time could be divide in three different stages:</p>
+    <ul>
+    <li>Learning
+    <ul>
+    <li>Learning ROS</li>
+    <li>Knowing Turtlebot3</li>
+    </ul></li>
+    <li>Get and analysis data
+    <ul>
+    <li>Preparing robot with 3D camera for scanning the store</li>
+    <li>Analysis</li>
+    </ul></li>
+    <li>Test different techniques
+    <ul>
+    <li>Processing of images (detecting objects)</li>
+    <li>Positioning objects (get angle and distance)</li>
+    <li>Put markers on the map</li>
+    <li>Build elevation map</li>
+    <li>Try to remove parts of the image that are fixed objects</li>
+    </ul></li>
+    </ul>
+    <h2 id="learning-ros"><span class="header-section-number">3.2</span> Learning ROS</h2>
+    <p>ROS is a flexible framework for software development for robots that provides the functionality of an operating system.</p>
+    <p>It is a collection of tools, libraries, and conventions that aim to simplify the task of creating complex and robust robot behavior across a wide variety of robotic platforms.</p>
+    <p>ROS provides the standard services of an operating system such as hardware abstraction, control of low-level devices, implementation of commonly used functionality, passing of messages between processes and maintenance of packages.</p>
+    <p>It is based on a graph architecture where the processing takes place in the nodes that can receive, send and multiplex messages from sensors, control, states, schedules and actuators, among others. The library is oriented for a UNIX system (Linux).</p>
+    <p>I passed the first two weeks of the project learning it. Firstly, I installed Ubuntu 16 and ROS Kinetic following the instructions of the documentation.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+    <p>I have installed it in a virtual machine using the free VirtualBox software, that was because it is easier, faster, and more flexible for me, I only have to problems:</p>
+    <ul>
+    <li>Loss of performance.</li>
+    <li>Need to change the network configuration of the virtual machine in order to properly connect with Robots.
+    <ul>
+    <li>Use “Bridge Mode”.</li>
+    </ul></li>
+    </ul>
+    <p>Finally, with everything installed and working, I have followed all the beginner tutorials<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> of the documentation and code small programs to test.</p>
+    
+    <h2 id="knowing-turtlebot3"><span class="header-section-number">3.3</span> Knowing Turtlebot3</h2>
+    <figure>
+    <img src="source/figures/turtlebot-3.jpg" style="width:50.0%" alt="" /><figcaption>Turtlebot3 Burger: version used in this project. </figcaption>
+    </figure>
+    <p>TurtleBot3 is a small, affordable, programmable, ROS-based mobile robot for the use in education, research, hobby, and product prototyping.</p>
+    <p>The TurtleBot can run SLAM(simultaneous localization and mapping) algorithms to build a map and can drive around in a room. Also, it can be controlled remotely from a laptop.</p>
+    <p>I received a ROS and Turtlebot3 workshop in which I started controlling the robot and testing all of its functionalities.</p>
+    <p>Then I followed all the tutorials of the Turtlebot3 e-Manual<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> emphasizing on the part of the creation and the usage of the maps. As well as testing autonomous navigation programs.</p>
+    
+    <p>Continuing with my learning of ROS and Turtlebot3 I code some programs:</p>
+    <ul>
+    <li>I modified the simple_navigation_goals.cpp program<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> to use coordinates relatives to the map.</li>
+    <li>I followed the markers tutorial<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> to create a subscriber node that can be used to notify the garbage in the map.</li>
+    </ul>
+    <h3 id="modifications"><span class="header-section-number">3.3.1</span> Modifications</h3>
+    <p>For the goals of this project we need to add some sensors to the Turtelbot. We decided to use one RGBD camera. The chosen one was the Intel Realsense d435.</p>
+    <figure>
+    <img src="source/figures/realsense-d435.jpg" style="width:75.0%" alt="" /><figcaption>Intel Realsense d435 camera. </figcaption>
+    </figure>
+    <p>In order to use the camera with the TurtleBot3 I need to compile the drivers in the own Raspberry Pi of the robot. The realsense drivers are downloaded without compiling and then they were compiled following the steps of the guide<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> but problems emerged.</p>
+    
+    <p>Firstly, a power supply must be used given the time it takes to perform the compilation.</p>
+    <p>The compilation will fail due to the lack of ram memory of the Raspberry Pi, I had to create a 2Gb swap partition following this steps.<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> With this I was able to compile it perfectly.</p>
+    <p>The next step was to download the necessary ROS package<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> into the workspace of the Raspberry Pi, compiled and finally tested the camera. I initialized the camera with the launch file <code>rs_camera.launch</code>.</p>
+    <p>There is a problem, the camera requires a usb 3.0 connection for the large amount of data handled, and the raspberry pi uses usb 2.0 so the resolution and frame rate must be lowered. I modified the launch file and use a resolution of 424x240 and 15 fps.</p>
+    <p>I place the camera on the front, in the third level of the TurtleBot3, fixed by a 3D printing custom camera screw.<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a></p>
+    <figure>
+    <img src="source/figures/camera_tb3.png" style="width:50.0%" alt="" /><figcaption>Camera position. </figcaption>
+    </figure>
+    
+    <p>I also created routines to easily start everything when scanning the store using aliases:</p>
+    <table>
+    <caption>Alias routines created for easy use of the robot. </caption>
+    <thead>
+    <tr class="header">
+    <th>Alias</th>
+    <th style="text-align: center;">Where execute</th>
+    <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td>bringup</td>
+    <td style="text-align: center;">[TurtleBot]</td>
+    <td>Robot and camera initialization.</td>
+    </tr>
+    <tr class="even">
+    <td>uclock</td>
+    <td style="text-align: center;">[Remote PC]</td>
+    <td>Synchronize internal CPU clocks of the robot and PC.</td>
+    </tr>
+    <tr class="odd">
+    <td>slam</td>
+    <td style="text-align: center;">[Remote PC]</td>
+    <td>Start creating the map.</td>
+    </tr>
+    <tr class="even">
+    <td>bag</td>
+    <td style="text-align: center;">[Remote PC]</td>
+    <td>Start record bag file.</td>
+    </tr>
+    <tr class="odd">
+    <td>teleop</td>
+    <td style="text-align: center;">[Remote PC]</td>
+    <td>Start teleoperation node to control remotely the robot.</td>
+    </tr>
+    <tr class="even">
+    <td>savemap</td>
+    <td style="text-align: center;">[Remote PC]</td>
+    <td>Save the map created.</td>
+    </tr>
+    </tbody>
+    </table>
+    <h2 id="results-of-the-mapping"><span class="header-section-number">3.4</span> Results of the mapping</h2>
+    <p>With the robot prepared and the map creation tested we were invited to one of the Colruyt Group stores to collect data.</p>
+    <p>We went through two corridors with the robot twice, a first without garbage to create the map mainly, and a second one with garbage on the ground.</p>
+    <p>Next, I will analyze the information obtained and discuss the methods used to recognize garbage.</p>
+    <h3 id="image-of-the-color-camera"><span class="header-section-number">3.4.1</span> Image of the color camera:</h3>
+    <figure>
+    <img src="source/figures/original-color.png" alt="" /><figcaption>Source image of the color camera. </figcaption>
+    </figure>
+    <p>In this image we see that the interesting part, where the floor is located, is the lower half of the image.</p>
+    <p>The most interesting is the dark and uniform color of the floor, except for the reflected shine of the lamps.</p>
+    <p>If it is possible to eliminate the brightness, it should be relatively easy to distinguish brightly colored objects from the dark ground.</p>
+    
+    <h3 id="image-of-the-depth-camera"><span class="header-section-number">3.4.2</span> Image of the depth camera:</h3>
+    <figure>
+    <img src="source/figures/original-depth.png" style="width:83.0%" alt="" /><figcaption>Source image of the depth camera. </figcaption>
+    </figure>
+    <p>This image is created with the depth information, in it the blue areas are closer and the red ones are farther away. I can see a problem, most of the lower half of the image, the one belonging to the ground and interesting to us, appears as a large blue spot in which I can not distinguish any object.</p>
+    <p>I have investigated the reason for this and has been concluded that the position of the camera is not ideal for being very close to the ground. In the specifications of the camera has been observed that there is a minimum range and maximum distance for usage of the camera. If the object is closer than the minimum will not be differentiable.</p>
+    <p>The camera should be placed in a higher position and away from the ground to solve this problem and be able to use the depth information.</p>
+    
+    <h3 id="map"><span class="header-section-number">3.4.3</span> Map:</h3>
+    <figure>
+    <img src="source/figures/original-map.png" alt="" /><figcaption>Occupancy map created. </figcaption>
+    </figure>
+    <p>This is the map created in the first pass without garbage. It is quite well built and only a simple processing will be necessary to eliminate the noise and complete it.</p>
+    <figure>
+    <img src="source/figures/processed-map.png" alt="" /><figcaption>Occupancy map processed. </figcaption>
+    </figure>
+    
+    <h2 id="implementation-of-the-computer-vision-algorithm"><span class="header-section-number">3.5</span> Implementation of the computer vision algorithm</h2>
+    <p>I start working in two objectives:</p>
+    <ul>
+    <li>Remove brightness.</li>
+    <li>Recognize objects of different color to the ground.</li>
+    </ul>
+    <p>I take frames of the recorded video and use Matlab for processing it. I use two apps of Matlab:</p>
+    <h3 id="color-threshold"><span class="header-section-number">3.5.1</span> Color threshold:</h3>
+    <figure>
+    <img src="source/figures/color-threshold.png" alt="" /><figcaption>Color threshold Matlab app. </figcaption>
+    </figure>
+    <p>With this app I can apply threshold to the images in different space of colors (RGB, HSV…) and based on the histogram.</p>
+    <p>I started working to recognise the garbage. The idea is to end with a binary image where white points are garbage and the rest will be black.</p>
+    <p>I tested different ways of binarizing the image based on the color. The most effective way is to change points with the highest RGB values to white and the rest to black, I tried different thresholds.</p>
+    <p>I apply color threshold to all the RGB channels of the image in different frames and test:</p>
+    <figure>
+    <img src="source/figures/color-threshold-200.png" style="width:80.0%" alt="" /><figcaption>Color threshold around 200. </figcaption>
+    </figure>
+    <p>In this image the threshold is fixed in the point that almost only the garbage appears in white, but some objects like plastics are a problem.</p>
+    <p>In the next image I lowered the threshold, now the plastics are more visible but the reflected shine of the lamps on the floor also appears.</p>
+    <figure>
+    <img src="source/figures/color-threshold-lower.png" style="width:80.0%" alt="" /><figcaption>Color threshold lower. </figcaption>
+    </figure>
+    <h3 id="morphological-operations"><span class="header-section-number">3.5.2</span> Morphological operations:</h3>
+    <figure>
+    <img src="source/figures/image-segmenter.png" alt="" /><figcaption>Image segmenter Matlab app. </figcaption>
+    </figure>
+    <p>With this app I can test different morphological operations in the images.</p>
+    <p>I have read about the different operations in the <span class="citation" data-cites="OpenCV">(OpenCV 2019)</span>.<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a></p>
+    <p>Morphological transformations are some simple operations based on the image shape. It is normally performed on binary images. It needs two inputs, one is our original image, second one is called structuring element or kernel which decides the nature of operation.</p>
+    <p>Working towards eliminating the brightness of the image floor, several morphological transformations are tested.</p>
+    
+    <p>One of them is Top Hat, it is the difference between input image and opening of the image. Below example is done for a 9x9 kernel.</p>
+    <figure>
+    <img src="source/figures/tophat.png" style="width:30.0%" alt="" /><figcaption>Top Hat example. </figcaption>
+    </figure>
+    <p>Opening is just another name of erosion followed by dilation. It is useful in removing noise.</p>
+    <figure>
+    <img src="source/figures/opening.png" style="width:30.0%" alt="" /><figcaption>Opening example. </figcaption>
+    </figure>
+    <ul>
+    <li>Top Hat = source image - opening of source image
+    <ul>
+    <li>Opening = erosion of source image -&gt; dilation of source image
+    <ul>
+    <li>Erosion = erodes away the boundaries of foreground object</li>
+    <li>Dilation = It is just opposite of erosion</li>
+    </ul></li>
+    </ul></li>
+    </ul>
+    <table>
+    <caption>Erosion and dilation examples. </caption>
+    <thead>
+    <tr class="header">
+    <th style="text-align: center;">Original</th>
+    <th style="text-align: center;">Erosion</th>
+    <th style="text-align: center;">Dilation</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/j.png" style="width:15.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/erosion.png" style="width:15.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/dilation.png" style="width:15.0%" /></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>I discovered that using Top Hat, the floor has a more uniform tone without losing much information of the rest so it can be used to create a mask and eliminate the problem of the floor, leaving an image in which the usage of segmentation based on colour can be performed more easy.</p>
+    <figure>
+    <img src="source/figures/image-tophat.png" style="width:80.0%" alt="" /><figcaption>Top Hat masked image. </figcaption>
+    </figure>
+    <p>I applied a blur filter to reduce noise, with a kernel 3x3 aperture.</p>
+    <p>Top Hat is applied to the gray scale image and then it is binarised using the Otsu algorithm <span class="citation" data-cites="1979:ots">(Otsu 1979)</span> to define the threshold.</p>
+    <p>I have tested with different structural elements to apply Top Hat. A disc of 15px diameter is the finally choosen for the algorithm.</p>
+    <p>Then, the morphological transformations, open and dilate, have been used to remove additional noise and increase the mask.</p>
+    <p>With all this tested I passed the program to ROS and OpenCV. I create a node that subscribes to the topic of the camera, converts it to be used in OpenCV and publishes the position of the detected garbage to mark it on the map.</p>
+    
+    <p>Example code of a ROS node that subscribes to an image and convert it with <code>cv_bridge</code> to be able to use it in OpenCV:</p>
+    <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1"></a><span class="dt">int</span> main (<span class="dt">int</span> argc, <span class="dt">char</span> **argv)</span>
+    <span id="cb1-2"><a href="#cb1-2"></a>{</span>
+    <span id="cb1-3"><a href="#cb1-3"></a>  ros::init(argc, argv, <span class="st">&quot;img_processing&quot;</span>);</span>
+    <span id="cb1-4"><a href="#cb1-4"></a>  ros::NodeHandle n;</span>
+    <span id="cb1-5"><a href="#cb1-5"></a></span>
+    <span id="cb1-6"><a href="#cb1-6"></a>  image_transport::ImageTransport it(n);</span>
+    <span id="cb1-7"><a href="#cb1-7"></a>  image_transport::Subscriber sub = it.subscribe(</span>
+    <span id="cb1-8"><a href="#cb1-8"></a>    <span class="st">&quot;/camera/color/image_raw&quot;</span>, <span class="dv">1</span>, imageCallback);</span>
+    <span id="cb1-9"><a href="#cb1-9"></a></span>
+    <span id="cb1-10"><a href="#cb1-10"></a>  ros::spin();</span>
+    <span id="cb1-11"><a href="#cb1-11"></a>}</span>
+    <span id="cb1-12"><a href="#cb1-12"></a></span>
+    <span id="cb1-13"><a href="#cb1-13"></a><span class="dt">void</span> imageCallback (<span class="at">const</span> sensor_msgs::ImageConstPtr&amp; msg)</span>
+    <span id="cb1-14"><a href="#cb1-14"></a>{</span>
+    <span id="cb1-15"><a href="#cb1-15"></a>  cv_bridge::CvImagePtr cv_ptr;</span>
+    <span id="cb1-16"><a href="#cb1-16"></a>  <span class="cf">try</span></span>
+    <span id="cb1-17"><a href="#cb1-17"></a>  {</span>
+    <span id="cb1-18"><a href="#cb1-18"></a>    cv_ptr = cv_bridge::toCvCopy(msg,</span>
+    <span id="cb1-19"><a href="#cb1-19"></a>      sensor_msgs::image_encodings::BGR8);</span>
+    <span id="cb1-20"><a href="#cb1-20"></a>  }</span>
+    <span id="cb1-21"><a href="#cb1-21"></a>  <span class="cf">catch</span> (cv_bridge::Exception&amp; e)</span>
+    <span id="cb1-22"><a href="#cb1-22"></a>  {</span>
+    <span id="cb1-23"><a href="#cb1-23"></a>    ROS_ERROR(<span class="st">&quot;cv_bridge exception: </span><span class="sc">%s</span><span class="st">&quot;</span>, e.what());</span>
+    <span id="cb1-24"><a href="#cb1-24"></a>    <span class="cf">return</span>;</span>
+    <span id="cb1-25"><a href="#cb1-25"></a>  }</span>
+    <span id="cb1-26"><a href="#cb1-26"></a></span>
+    <span id="cb1-27"><a href="#cb1-27"></a>  <span class="co">// Image Processing</span></span>
+    <span id="cb1-28"><a href="#cb1-28"></a>  cv::Mat dImg = cv_ptr-&gt;image;</span>
+    <span id="cb1-29"><a href="#cb1-29"></a></span>
+    <span id="cb1-30"><a href="#cb1-30"></a>  ...</span></code></pre></div>
+    
+    <p>This will be the main program to process the image, it should process the image, first create the Top Hat masked image and then apply color threshold based on the RGB color space.</p>
+    <h2 id="positioning-objects"><span class="header-section-number">3.6</span> Positioning objects</h2>
+    <p>The next step was to isolate each object and calculate the relative position respect to the robot and later transform to map coordinates.</p>
+    <p>I have created a service that receives the X, Y coordinates of the center pixel that belongs to the object in the image and return the position.</p>
+    <p>I came up with two methods.</p>
+    <h3 id="angle-and-distance"><span class="header-section-number">3.6.1</span> Angle and distance:</h3>
+    <figure>
+    <img src="source/figures/position.png" alt="" /><figcaption>Positioning garbage explanation. </figcaption>
+    </figure>
+    
+    <p>For calculating the angle, I used a simple formula based on the field of view of the RGBD Camera Intel Realsense d435: 85.2° x 58° (+/- 3°)</p>
+    <blockquote>
+    <p><span class="math inline">\(angle=\frac{85.2}{\frac{imageWidth}{2}} \cdot X - 85.2\)</span></p>
+    </blockquote>
+    <figure>
+    <img src="source/figures/angle.png" alt="" /><figcaption>How to get angle and distance of the garbage. </figcaption>
+    </figure>
+    <p>For the distance I use the depth camera info, activating the feature to align the depth image with the color image.</p>
+    <p><code>roslaunch realsense2_camera rs_camera.launch align_depth:=true</code></p>
+    <h3 id="point-cloud"><span class="header-section-number">3.6.2</span> Point Cloud:</h3>
+    <p>If I start the camera with the command <code>roslaunch realsense2_camera rs_camera.launch filters:=pointcloud</code> a point cloud will be published. This point cloud is of type unorganised, which is a one row array of points. Because of the unorganised representation, the calculation of a point that corresponds to a certain pixel in the colour image, becomes difficult.</p>
+    <p>For getting a organized point cloud data that uses 2D array of points with the same size of the color image I should start the camera with the command <code>roslaunch realsense2_camera rs_rgbd.launch</code>. That one uses the color and depth image to create the point cloud using the ROS package rgbd_launch.</p>
+    <p>With this point cloud I could get the coordinates respect to the camera of each pixel of the image easily. This was the method that I finally use to position the objects.</p>
+    <p>Example code of a ROS node that subscribes to an PCL calc the point that corresponds to a certain pixel:</p>
+    <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1"></a><span class="dt">int</span> main (<span class="dt">int</span> argc, <span class="dt">char</span> **argv)</span>
+    <span id="cb2-2"><a href="#cb2-2"></a>{</span>
+    <span id="cb2-3"><a href="#cb2-3"></a>  ros::init(argc, argv, <span class="st">&quot;map_marker&quot;</span>);</span>
+    <span id="cb2-4"><a href="#cb2-4"></a>  ros::NodeHandle n;</span>
+    <span id="cb2-5"><a href="#cb2-5"></a>  ros::Subscriber sub = n.subscribe&lt;sensor_msgs::PointCloud2&gt;</span>
+    <span id="cb2-6"><a href="#cb2-6"></a>    (<span class="st">&quot;/camera/depth_registered/points&quot;</span>, <span class="dv">1</span>, callback);</span>
+    <span id="cb2-7"><a href="#cb2-7"></a>  ros::spin();</span>
+    <span id="cb2-8"><a href="#cb2-8"></a>}</span>
+    <span id="cb2-9"><a href="#cb2-9"></a></span>
+    <span id="cb2-10"><a href="#cb2-10"></a><span class="dt">void</span> callback(<span class="at">const</span> sensor_msgs::PointCloud2ConstPtr&amp; msg)</span>
+    <span id="cb2-11"><a href="#cb2-11"></a>{</span>
+    <span id="cb2-12"><a href="#cb2-12"></a>  my_pcl = *msg;</span>
+    <span id="cb2-13"><a href="#cb2-13"></a></span>
+    <span id="cb2-14"><a href="#cb2-14"></a>  <span class="dt">int</span> arrayPosition = v*my_pcl.row_step + u*my_pcl.point_step;</span>
+    <span id="cb2-15"><a href="#cb2-15"></a>  <span class="dt">int</span> arrayPosX = arrayPosition</span>
+    <span id="cb2-16"><a href="#cb2-16"></a>    + my_pcl.fields[<span class="dv">0</span>].offset; <span class="co">// X has an offset of 0</span></span>
+    <span id="cb2-17"><a href="#cb2-17"></a>  <span class="dt">int</span> arrayPosY = arrayPosition</span>
+    <span id="cb2-18"><a href="#cb2-18"></a>    + my_pcl.fields[<span class="dv">1</span>].offset; <span class="co">// Y has an offset of 4</span></span>
+    <span id="cb2-19"><a href="#cb2-19"></a>  <span class="dt">int</span> arrayPosZ = arrayPosition</span>
+    <span id="cb2-20"><a href="#cb2-20"></a>    + my_pcl.fields[<span class="dv">2</span>].offset; <span class="co">// Z has an offset of 8</span></span>
+    <span id="cb2-21"><a href="#cb2-21"></a></span>
+    <span id="cb2-22"><a href="#cb2-22"></a>  <span class="dt">float</span> X = <span class="dv">0</span>;</span>
+    <span id="cb2-23"><a href="#cb2-23"></a>  <span class="dt">float</span> Y = <span class="dv">0</span>;</span>
+    <span id="cb2-24"><a href="#cb2-24"></a>  <span class="dt">float</span> Z = <span class="dv">0</span>;</span>
+    <span id="cb2-25"><a href="#cb2-25"></a></span>
+    <span id="cb2-26"><a href="#cb2-26"></a>  memcpy(&amp;X, &amp;my_pcl.data[arrayPosX], <span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+    <span id="cb2-27"><a href="#cb2-27"></a>  memcpy(&amp;Y, &amp;my_pcl.data[arrayPosY], <span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+    <span id="cb2-28"><a href="#cb2-28"></a>  memcpy(&amp;Z, &amp;my_pcl.data[arrayPosZ], <span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+    <span id="cb2-29"><a href="#cb2-29"></a></span>
+    <span id="cb2-30"><a href="#cb2-30"></a>  ROS_INFO(<span class="st">&quot;</span><span class="sc">%f</span><span class="st"> </span><span class="sc">%f</span><span class="st"> </span><span class="sc">%f</span><span class="st">&quot;</span>, X,Y,Z);    </span>
+    <span id="cb2-31"><a href="#cb2-31"></a></span>
+    <span id="cb2-32"><a href="#cb2-32"></a>  ...</span></code></pre></div>
+    <h1 id="camera-calibration"><span class="header-section-number">4</span> Camera calibration</h1>
+    <h2 id="introduction-3"><span class="header-section-number">4.1</span> Introduction</h2>
+    <p>I need to calibrate the camera position in the robot to transforms the coordinates correctly.</p>
+    <p>In this chapter I will resume the methods that I have found to calibrate the camera as well the results that were obtained.</p>
+    <p>An important point is to know the concepts of intrinsic and extrinsic parameters of a camera.</p>
+    <ul>
+    <li>Intrinsic:
+    <ul>
+    <li>Focal length</li>
+    <li>Principal point</li>
+    <li>Skew</li>
+    <li>Radial distortion</li>
+    <li>Tangential distortion</li>
+    </ul></li>
+    <li>Extrinsic:
+    <ul>
+    <li>Translation vectors</li>
+    <li>Rotation vectors</li>
+    </ul></li>
+    </ul>
+    <figure>
+    <img src="source/figures/calibration_coordinate_blocks.png" alt="" /><figcaption>Calibration coordinates camera intrinsic and extrinsic. </figcaption>
+    </figure>
+    <p>The extrinsic parameters denote the coordinate system transformations from 3D world coordinates to 3D camera coordinates. Equivalently, the extrinsic parameters define the position of the camera, these are the important ones for our purpose.</p>
+    <p>Another important point to keep in mind is to know the system of axes that each method uses to be able to interpret them correctly.</p>
+    <table>
+    <caption>Axes transformations used. X red, Y green and Z blue. </caption>
+    <thead>
+    <tr class="header">
+    <th style="text-align: center;">ROS</th>
+    <th style="text-align: center;">RADLOCC</th>
+    <th style="text-align: center;">OPTICAL</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/ROS_axes.png" style="width:30.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/RADLOCC_axes.png" style="width:30.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/optical_axes.png" style="width:30.0%" /></td>
+    </tr>
+    </tbody>
+    </table>
+    
+    <h2 id="radlocc-toolbox"><span class="header-section-number">4.2</span> RADLOCC Toolbox</h2>
+    <p>I have found a Matlab toolbox called RADLOCC<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> based on the works of the papers <span class="citation" data-cites="Kassir">(Kassir &amp; Peynot 2010)</span> and <span class="citation" data-cites="Peynot">(Peynot &amp; Kassir 2010)</span>.</p>
+    <blockquote>
+    <p>“This paper proposes algorithms that augment two existing trustful calibration methods with an automatic extraction of the calibration object from the sensor data. The result is a complete procedure that allows for automatic camera-laser calibration.”</p>
+    </blockquote>
+    <p>For using this toolbox I need a special dataset that should contain a set of files:</p>
+    <ul>
+    <li><code>laser.txt</code> containing the laser data, in the format <code>timestamp angle_min angle_increment angle_max unit_type number_of_points ranges</code>;</li>
+    <li><code>image_stamps.txt</code> containing the timestamps of the captured images;</li>
+    <li><code>image_XX.bmp</code>, which are the image files, which need to start by the number 01 (and not 00). For example image_01.bmp, image_002.bmp, …</li>
+    </ul>
+    <p>This dataset was exported from ROS using a python script, taking photos with the color camera of a checkerboard in different positions.</p>
+    
+    <p>The RADLOCC method for getting a calibration was:</p>
+    <ol type="1">
+    <li>In a directory, extract both RADOCC and RADLOCC Toolkits.</li>
+    <li>In MATLAB, add both toolkits to the path.
+    <ul>
+    <li><code>addpath RADOCCToolbox</code></li>
+    <li><code>addpath RADOCCToolbox\CornerFinder</code></li>
+    <li><code>addpath RADLOCCToolbox</code></li>
+    <li><code>addpath RADLOCCToolbox\Functions.</code></li>
+    </ul></li>
+    <li>Open the dataset as the root.</li>
+    <li>The first step is to obtain the intrinsic calibration of the camera and extract the checkerboard planes. To do this, run the <code>calib</code> command. Then follow the steps:
+    <ul>
+    <li><code>Image Names</code> to set the image names (select <code>image_</code> and <code>b</code> for <code>bmp</code>)</li>
+    <li><code>Extract Grid Corners</code> (press enter for all images)</li>
+    <li><code>Calibration</code> to get the intrinsic parameters</li>
+    <li><code>Save</code>, which saves the calibration to a file in the dataset’s directory (<code>Calib_Results.mat</code>)</li>
+    </ul></li>
+    <li>Run the RADLOCC Toolbox. Load both the laser and the image data with <code>Read Data</code>.</li>
+    <li><code>Manual Select</code> to segment the laser. Choose only the more straight and clear parts.</li>
+    <li><code>Calibrate</code> to run the calibration algorithm. The values appear on the console of MATLAB.</li>
+    <li><code>Laser into Image</code> to check the validity of the calibration. If a range of images is what is wanted, then input something like <code>1:10</code>.</li>
+    </ol>
+    <p>The best results obtained have been with a dataset of many images (22) in the highest possible resolution (1280 × 720) and placing the checkerboard plane as close as possible to the camera to capture more points of the laser.</p>
+    
+    <p>RADLOCC axis <span class="math display">\[
+    \Delta = \begin{pmatrix}
+    0.0308\\
+    -0.0652\\
+    -0.0796\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    0.011\\
+    0.0136\\
+    0.00737\\
+    \end{pmatrix}
+    m
+    \]</span> <span class="math display">\[
+    \Phi = \begin{pmatrix}
+    -0.105\\
+    -3.53\\
+    -179\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    1.38\\
+    0.615\\
+    0.631\\
+    \end{pmatrix}
+    deg
+    \]</span></p>
+    <blockquote>
+    <p>Total rms error = 0.00616</p>
+    </blockquote>
+    <p>A very large error can be observed for the dimensions that are being measured, this is because the laser is not very precise and does not recognize the plane as a completely straight line of points.</p>
+    <figure>
+    <img src="source/figures/laser_plane_example.png" alt="" /><figcaption>An example of a laser beam projected on the XZ-plane. </figcaption>
+    </figure>
+    <p>Perhaps this method would be more accurate with a better laser or with post processed laser data that calculates the average of the position of the points during the time that the checkerboard plane is in the same position, avoiding outliers.</p>
+    <p>The advantage of this method is that it can be used with any type of camera, a RGBD camera is not necessary.</p>
+    <h2 id="point-cloud-to-laser-scan-and-2d-calibration"><span class="header-section-number">4.3</span> Point cloud to laser scan and 2D calibration</h2>
+    <p>Other approach for the calibration of the camera is to use the point cloud and the laser sensor. There are several ROS packages to convert a PCL in laser scan data given certain parameters.<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a></p>
+    <p>With the two laser scan files, one for the laser and other of the conversion, and tools like in Matlab <code>matchScans</code><a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a> I could get the X, Y and theta parameters. In this case I need to suppose that the other two rotations are equal to 0 and measure the Z distance to perform the PCL to laser scan conversion at the same height of the real laser.</p>
+    <figure>
+    <img src="source/figures/MatchLidarScansExample.png" style="width:85.0%" alt="" /><figcaption>Match Lidar Scans Example </figcaption>
+    </figure>
+    <p>For this reasons, the lack of precision of the laser seen in the previous method, and the lack of time to implement the algorithms in Maltlab and export the data in a correctly, this method has not been proven.</p>
+    <h2 id="third-point-method"><span class="header-section-number">4.4</span> Third point method</h2>
+    <p>The problem with the calibrations of the camera is that I can not measure the distance of the hardware by hand because this is not the actual position from which the photo was taken, either by the internal lenses or by the position of the camera in the interior of the frame.</p>
+    <p>But with a checkerboard and using the Matlab toolbox to calibrate cameras it is easy to get the position with respect to the checkerboard plane, being the origin the first corner.</p>
+    <figure>
+    <img src="source/figures/checkerboard.png" style="width:75.0%" alt="" /><figcaption>Checkerboard example. Origin and axes. </figcaption>
+    </figure>
+    
+    <p>If I make that point to match with the height of the laser, known by the URDF model of the robot, and the plane is placed parallel to the robot, the transformation between that point and the laser would be equal to 0 in all the axes and angles except in the X axes that would be the measurement given by the laser.</p>
+    <figure>
+    <img src="source/figures/origin_plane-laser.png" style="width:75.0%" alt="" /><figcaption>Origin_plane-laser transformation. </figcaption>
+    </figure>
+    <p>Finally I will have the two transformations, one camera-origin_plane and another origin_plane-laser, that gives us the searched transformation camera-laser.</p>
+    <p>For the first, I used the Matlab toolbox to calibrate cameras with the same dataset that was used for the RADLOCC method, adding an image with the origin of the plane matching with the laser.</p>
+    
+    <p>From this method I get this transformation camera-checkerboard:</p>
+    <p>Optical axes <span class="math display">\[
+    \Delta = \begin{pmatrix}
+    0.0230\\
+    -0.0694\\
+    0.6606\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    0.0004\\
+    0.0006\\
+    0.0010\\
+    \end{pmatrix}
+    m
+    \]</span> <span class="math display">\[
+    \Phi = \begin{pmatrix}
+    -0.0186\\
+    -0.0234\\
+    0.0206\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    0.0026\\
+    0.0022\\
+    0.0003\\
+    \end{pmatrix}
+    rad
+    \]</span></p>
+    <p>For the second, the distance to the point has been measured with the laser several times and the average has been made.</p>
+    <p>ROS axes <span class="math display">\[
+    \Delta = \begin{pmatrix}
+    0,6044\\
+    0\\
+    0\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    0.001\\
+    0.001\\
+    0.001\\
+    \end{pmatrix}
+    m
+    \]</span></p>
+    <p>The final laser-camera transformation would be:</p>
+    <p>ROS axes<br />
+    <span class="math display">\[
+    \Delta = \begin{pmatrix}
+    0.0562\\
+    0.0230\\
+    -0.0694\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    0.0020\\
+    0.0014\\
+    0.0016\\
+    \end{pmatrix}
+    m
+    \]</span> <span class="math display">\[
+    \Phi = \begin{pmatrix}
+    0.0206\\
+    -0.0186\\
+    -0.0234\\
+    \end{pmatrix}
+    \pm
+    \begin{pmatrix}
+    0.0178\\
+    0.0201\\
+    0.0197\\
+    \end{pmatrix}
+    rad
+    \]</span></p>
+    
+    <h2 id="conclusions-1"><span class="header-section-number">4.5</span> Conclusions</h2>
+    <p>External calibration of a camera to a laser is a common prerequisite on today’s multi-sensor mobile robot platforms. However, the process of doing so is relatively poorly documented and almost always time-consuming.</p>
+    <p>For our project I do not currently need this calibration with high precision, so after observing the results of the last method and comparing several measures of laser and PCL, I have chosen to give the calibration as sufficient, documenting all methods in case in the future will be needed.</p>
+    <p>The final result in the URDF model of the robot is:</p>
+    <figure>
+    <img src="source/figures/camera_position.png" style="width:75.0%" alt="" /><figcaption>Camera position relative to laser scan. </figcaption>
+    </figure>
+    <h1 id="results-and-conclusions"><span class="header-section-number">5</span> Results and conclusions</h1>
+    <h2 id="introduction-4"><span class="header-section-number">5.1</span> Introduction</h2>
+    <p>In this part I will comment the results of different test and talk about the conclusions that I have reached in this project.</p>
+    <p>I will summarize some ideas or techniques that could not be proved due to lack of time and knowledge, the problems encountered will also be detailed and we will discuss how they could be solved.</p>
+    <h2 id="tests"><span class="header-section-number">5.2</span> Tests</h2>
+    <p>To see the results of the works and programs carried out, I have done different tests.</p>
+    <p>In this project there are two main parts that have been developed and should be tested, the image processing to detect garbage and the positioning on the map of this garbage.</p>
+    <p>These two parts have been tested separately under different conditions, this is because the processing of the image to detect garbage is prepared for the conditions of the store (color of the floor, surrounding furniture color, lights) and these are not easy to replicate.</p>
+    
+    <h3 id="recognizing"><span class="header-section-number">5.2.1</span> Recognizing</h3>
+    <p>To test how the garbage recognition algorithm works, the recorded data during the visit to one of the stores was used, specifically the recorded by the color camera installed in the robot.</p>
+    <p>In this recording you can see examples with different types of materials.</p>
+    <p>The algorithm recognizes most of the garbage with ease and because being in movement, different points of view of the same object are had, reason why if it is not recognized in a frame it is very probable be recognized in another one (especially when it is more centered and near)</p>
+    <p>Errors are also observed as parts that are recognized as garbage and are not, such as:</p>
+    <ul>
+    <li>Lines or indications painted on the floor.</li>
+    <li>Parts of the furniture of the store that differ greatly from the color of the floor. (racks, legs, …)</li>
+    <li>Parts of the image that correspond to very distant things.</li>
+    </ul>
+    <p>Below there are some images collected from the recording as an example of the different situations and materials tested.</p>
+    
+    <table>
+    <caption>Results of the image processing algorithm. </caption>
+    <thead>
+    <tr class="header">
+    <th style="text-align: center;">Original</th>
+    <th style="text-align: center;">Result</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/o1.png" style="width:55.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/n1.png" style="width:55.0%" /></td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: center;"><img src="source/figures/o2.png" style="width:55.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/n2.png" style="width:55.0%" /></td>
+    </tr>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/o3.png" style="width:55.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/n3.png" style="width:55.0%" /></td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: center;"><img src="source/figures/o4.png" style="width:55.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/n4.png" style="width:55.0%" /></td>
+    </tr>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/o5.png" style="width:55.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/n5.png" style="width:55.0%" /></td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: center;"><img src="source/figures/o6.png" style="width:55.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/n6.png" style="width:55.0%" /></td>
+    </tr>
+    </tbody>
+    </table>
+    
+    
+    
+    <h3 id="positioning"><span class="header-section-number">5.2.2</span> Positioning</h3>
+    <p>To test the positioning of the garbage on a 2D map, a small test facility is built using four wooden boards. With the circuit finished I go through it with the robot and built the map.</p>
+    <p>As the conditions are different from those of the store (color of the floor, surrounding furniture color, lights) the algorithm to recognize garbage did not work and I had to adjust it (change color thresholds and kernels sizes) to recognize objects only white and thus be able to test the positioning part.</p>
+    <table>
+    <caption>Test circuit and map created. </caption>
+    <thead>
+    <tr class="header">
+    <th style="text-align: center;">Test circuit</th>
+    <th style="text-align: center;">Map created</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/test_circuit.jpg" style="width:70.0%" alt="Test circuit" /></td>
+    <td style="text-align: center;"><img src="source/figures/test_map.png" style="width:25.0%" alt="Map created of the test circuit" /></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>The objective is to recognize and correctly position the different white objects placed by the circuit in the created map.</p>
+    <p>The algorithms have been thought to run in real time while the robot moves and so it was initially tested. With this first test the results of the following image were obtained.</p>
+    <figure>
+    <img src="source/figures/m0.png" style="width:50.0%" alt="" /><figcaption>Result of positioning garbage while moving the robot. </figcaption>
+    </figure>
+    <p>At first glance one could say that the program failed, marking multiple points that do not correspond to garbage along the entire map, but analyzing why this happened and seeing that some points were correct, some conclusions were reached:</p>
+    <ul>
+    <li>The noise of the point cloud causes errors in the measurements when positioning.</li>
+    <li>The processing of so many algorithms at the same time by the robot added to the large amount of data from the camera and the management of the wifi for the connection exceeds the CPU power of the Raspberry Pi of the Turtlebot3.</li>
+    <li>Given this slow processing, the necessary transformations to position the objects on the map are not performed immediately, this causes them to be wrong.</li>
+    </ul>
+    <p>For all these reasons I tried again but this time only executing the code to position garbage with the robot completely stopped and interrupting it when I want to move the robot.</p>
+    <p>Below are the different stops of the robot and the points that are marked on the map cumulatively at each stop.</p>
+    
+    <table>
+    <caption>Result of positioning with the robot stoped in different positions. </caption>
+    <thead>
+    <tr class="header">
+    <th style="text-align: center;">Pose 1.</th>
+    <th style="text-align: center;">Pose 2.</th>
+    <th style="text-align: center;">Pose 3.</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/m1.png" style="width:30.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/m2.png" style="width:30.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/m3.png" style="width:30.0%" /></td>
+    </tr>
+    </tbody>
+    </table>
+    <table>
+    <thead>
+    <tr class="header">
+    <th style="text-align: center;">Pose 4.</th>
+    <th style="text-align: center;">Pose 5.</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: center;"><img src="source/figures/m4.png" style="width:46.0%" /></td>
+    <td style="text-align: center;"><img src="source/figures/m5.png" style="width:46.0%" /></td>
+    </tr>
+    </tbody>
+    </table>
+    <p>This time it can be said that the positioning of the garbage has been effective, errors are still observed as the same object is positioned a little different depending on where the object is seen by the robot.</p>
+    
+    <h2 id="future-work"><span class="header-section-number">5.3</span> Future work</h2>
+    <p>Here I will comment, from my point of view, how this project should continue to develop, what should be the topics to investigate and the changes to be made.</p>
+    <p>Starting with the things that I have lacked time to try, I have two ideas:</p>
+    <ul>
+    <li><p>The creation of elevation maps with the RGBD camera. I can create a map without garbage and another map containing garbage, perform the subtraction leaving only the different points that should correspond with the garbage, the result can be superimposed with the occupation map to see its position.</p></li>
+    <li><p>In the processing of the image one of the biggest challenges is to isolate the part of the image belonging to the ground, so as not to identify the furniture as garbage. The idea would be to analyze pixel by pixel comparing the information of the position given by the PCL and the situation on the map to determine if it corresponds with parts that should not be analyzed and eliminate that pixel.</p></li>
+    </ul>
+    <p>One of the first changes that I would make would be the Raspberry Pi of the Turtlebot3, this presents several problems such as the lack of usb 3.0 or higher for a correct communication with the camera, the lack of RAM to compile certain packages and finally the lack of power for run many very demanding nodes in real time.</p>
+    <p>Another step in this project would be to adapt the algorithm of image processing to recognize garbage to be used in any environment and combine it with more techniques to achieve better results (Other vision techniques, neural networks…)</p>
+    <h2 id="conclusion"><span class="header-section-number">5.4</span> Conclusion</h2>
+    <p>The implementation of this project has been based on the application of computer vision techniques almost exclusively. This is due to the lack of time and knowledge to try other techniques, such as those mentioned in the literature analysis about the construction of different kind of maps.</p>
+    <p>Even so, the work done serves as a first approach and serves as a basis for future work related to this and others that use:</p>
+    <ul>
+    <li>Recognition of objects in dynamic environments either through image processing or depth cameras.</li>
+    <li>Positioning and marking objects on the map.</li>
+    <li>Calibration of the camera position in multi-sensor mobile robot platforms.</li>
+    </ul>
+    <p>It also demonstrate that is possible the automation of this process, reducing cost and time for the company.</p>
+    <p>During the time that I have been developing this project I have learned to handle ROS with some ease and how to handle a robot and integrate new sensors, I have applied and reinforced my knowledge of programming in C++ and OpenCV.</p>
+    <h1 id="appendix-1-code" class="unnumbered">Appendix 1: Code</h1>
+    <h2 id="img_processing.cpp" class="unnumbered">img_processing.cpp</h2>
+    <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1"></a><span class="pp">#include </span><span class="im">&lt;ros/ros.h&gt;</span></span>
+    <span id="cb3-2"><a href="#cb3-2"></a><span class="pp">#include </span><span class="im">&lt;image_transport/image_transport.h&gt;</span></span>
+    <span id="cb3-3"><a href="#cb3-3"></a><span class="pp">#include </span><span class="im">&lt;cv_bridge/cv_bridge.h&gt;</span></span>
+    <span id="cb3-4"><a href="#cb3-4"></a><span class="pp">#include </span><span class="im">&lt;sensor_msgs/image_encodings.h&gt;</span></span>
+    <span id="cb3-5"><a href="#cb3-5"></a><span class="pp">#include </span><span class="im">&lt;opencv2/imgproc/imgproc.hpp&gt;</span></span>
+    <span id="cb3-6"><a href="#cb3-6"></a><span class="pp">#include </span><span class="im">&lt;opencv2/highgui/highgui.hpp&gt;</span></span>
+    <span id="cb3-7"><a href="#cb3-7"></a><span class="pp">#include </span><span class="im">&quot;detect_garbage/pixel_coordinates.h&quot;</span></span>
+    <span id="cb3-8"><a href="#cb3-8"></a></span>
+    <span id="cb3-9"><a href="#cb3-9"></a><span class="co">// Global variables</span></span>
+    <span id="cb3-10"><a href="#cb3-10"></a>cv::Mat src, src_gray, dst, mask;</span>
+    <span id="cb3-11"><a href="#cb3-11"></a></span>
+    <span id="cb3-12"><a href="#cb3-12"></a><span class="dt">int</span> size_top = <span class="dv">15</span>;</span>
+    <span id="cb3-13"><a href="#cb3-13"></a><span class="dt">int</span> size_dilate = <span class="dv">5</span>;</span>
+    <span id="cb3-14"><a href="#cb3-14"></a><span class="dt">int</span> size_dilate1 = <span class="dv">5</span>;</span>
+    <span id="cb3-15"><a href="#cb3-15"></a><span class="dt">int</span> max_size = <span class="dv">100</span>;</span>
+    <span id="cb3-16"><a href="#cb3-16"></a><span class="dt">int</span> threshold_RGB = <span class="dv">153</span>;</span>
+    <span id="cb3-17"><a href="#cb3-17"></a><span class="dt">int</span> threshold_Y_min = <span class="dv">0</span>;</span>
+    <span id="cb3-18"><a href="#cb3-18"></a><span class="dt">int</span> threshold_Y_max = <span class="dv">215</span>;</span>
+    <span id="cb3-19"><a href="#cb3-19"></a><span class="dt">int</span> threshold_Cb_min = <span class="dv">115</span>;</span>
+    <span id="cb3-20"><a href="#cb3-20"></a><span class="dt">int</span> threshold_Cb_max = <span class="dv">255</span>;</span>
+    <span id="cb3-21"><a href="#cb3-21"></a><span class="dt">int</span> <span class="at">const</span> max_threshold = <span class="dv">255</span>;</span>
+    <span id="cb3-22"><a href="#cb3-22"></a></span>
+    <span id="cb3-23"><a href="#cb3-23"></a><span class="at">static</span> <span class="at">const</span> <span class="bu">std::</span>string ORIGINAL = <span class="st">&quot;Original&quot;</span>;</span>
+    <span id="cb3-24"><a href="#cb3-24"></a><span class="at">static</span> <span class="at">const</span> <span class="bu">std::</span>string FINAL = <span class="st">&quot;Final&quot;</span>;</span>
+    <span id="cb3-25"><a href="#cb3-25"></a><span class="at">static</span> <span class="at">const</span> <span class="bu">std::</span>string window_1 = <span class="st">&quot;Top Hat&quot;</span>;</span>
+    <span id="cb3-26"><a href="#cb3-26"></a><span class="at">static</span> <span class="at">const</span> <span class="bu">std::</span>string window_2 = <span class="st">&quot;Color RGB Threshold&quot;</span>;</span>
+    <span id="cb3-27"><a href="#cb3-27"></a><span class="at">static</span> <span class="at">const</span> <span class="bu">std::</span>string window_3 = <span class="st">&quot;Color YCrCb Threshold&quot;</span>;</span>
+    <span id="cb3-28"><a href="#cb3-28"></a></span>
+    <span id="cb3-29"><a href="#cb3-29"></a><span class="dt">void</span> imageCallback (<span class="at">const</span> sensor_msgs::ImageConstPtr&amp; msg);</span>
+    <span id="cb3-30"><a href="#cb3-30"></a><span class="dt">void</span> tophat(<span class="dt">int</span>, <span class="dt">void</span>*);</span>
+    <span id="cb3-31"><a href="#cb3-31"></a><span class="dt">void</span> colorThreshold( <span class="dt">int</span>, <span class="dt">void</span>* );</span>
+    <span id="cb3-32"><a href="#cb3-32"></a>ros::ServiceClient *clientPtr; <span class="co">// Pointer for a client</span></span>
+    <span id="cb3-33"><a href="#cb3-33"></a></span>
+    <span id="cb3-34"><a href="#cb3-34"></a><span class="dt">int</span> main (<span class="dt">int</span> argc, <span class="dt">char</span> **argv)</span>
+    <span id="cb3-35"><a href="#cb3-35"></a>{</span>
+    <span id="cb3-36"><a href="#cb3-36"></a>  ros::init(argc, argv, <span class="st">&quot;img_processing&quot;</span>);</span>
+    <span id="cb3-37"><a href="#cb3-37"></a>  ros::NodeHandle n;</span>
+    <span id="cb3-38"><a href="#cb3-38"></a></span>
+    <span id="cb3-39"><a href="#cb3-39"></a>  cv::namedWindow(ORIGINAL);</span>
+    <span id="cb3-40"><a href="#cb3-40"></a>  cv::startWindowThread();</span>
+    <span id="cb3-41"><a href="#cb3-41"></a></span>
+    <span id="cb3-42"><a href="#cb3-42"></a>  image_transport::ImageTransport it(n);</span>
+    <span id="cb3-43"><a href="#cb3-43"></a>  image_transport::Subscriber sub = it.subscribe(</span>
+    <span id="cb3-44"><a href="#cb3-44"></a>    <span class="st">&quot;/camera/color/image_raw&quot;</span>, <span class="dv">1</span>, imageCallback);</span>
+    <span id="cb3-45"><a href="#cb3-45"></a></span>
+    <span id="cb3-46"><a href="#cb3-46"></a>  ros::ServiceClient client = n.serviceClient&lt;</span>
+    <span id="cb3-47"><a href="#cb3-47"></a>    detect_garbage::pixel_coordinates&gt;(<span class="st">&quot;pixel_coordinates&quot;</span>);</span>
+    <span id="cb3-48"><a href="#cb3-48"></a></span>
+    <span id="cb3-49"><a href="#cb3-49"></a>  <span class="co">//give the address of the client to the clientPtr</span></span>
+    <span id="cb3-50"><a href="#cb3-50"></a>  clientPtr = &amp;client;</span>
+    <span id="cb3-51"><a href="#cb3-51"></a></span>
+    <span id="cb3-52"><a href="#cb3-52"></a>  ros::spin();</span>
+    <span id="cb3-53"><a href="#cb3-53"></a></span>
+    <span id="cb3-54"><a href="#cb3-54"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+    <span id="cb3-55"><a href="#cb3-55"></a>}</span>
+    <span id="cb3-56"><a href="#cb3-56"></a></span>
+    <span id="cb3-57"><a href="#cb3-57"></a><span class="dt">void</span> imageCallback (<span class="at">const</span> sensor_msgs::ImageConstPtr&amp; msg)</span>
+    <span id="cb3-58"><a href="#cb3-58"></a>{</span>
+    <span id="cb3-59"><a href="#cb3-59"></a>  cv_bridge::CvImagePtr cv_ptr;</span>
+    <span id="cb3-60"><a href="#cb3-60"></a>  <span class="cf">try</span></span>
+    <span id="cb3-61"><a href="#cb3-61"></a>  {</span>
+    <span id="cb3-62"><a href="#cb3-62"></a>    cv_ptr = cv_bridge::toCvCopy(msg,</span>
+    <span id="cb3-63"><a href="#cb3-63"></a>      sensor_msgs::image_encodings::BGR8);</span>
+    <span id="cb3-64"><a href="#cb3-64"></a>  }</span>
+    <span id="cb3-65"><a href="#cb3-65"></a>  <span class="cf">catch</span> (cv_bridge::Exception&amp; e)</span>
+    <span id="cb3-66"><a href="#cb3-66"></a>  {</span>
+    <span id="cb3-67"><a href="#cb3-67"></a>    ROS_ERROR(<span class="st">&quot;cv_bridge exception: </span><span class="sc">%s</span><span class="st">&quot;</span>, e.what());</span>
+    <span id="cb3-68"><a href="#cb3-68"></a>    <span class="cf">return</span>;</span>
+    <span id="cb3-69"><a href="#cb3-69"></a>  }</span>
+    <span id="cb3-70"><a href="#cb3-70"></a></span>
+    <span id="cb3-71"><a href="#cb3-71"></a>  <span class="co">// Image Processing</span></span>
+    <span id="cb3-72"><a href="#cb3-72"></a>  cv::Mat dImg = cv_ptr-&gt;image;</span>
+    <span id="cb3-73"><a href="#cb3-73"></a></span>
+    <span id="cb3-74"><a href="#cb3-74"></a>  <span class="co">// Divide in half</span></span>
+    <span id="cb3-75"><a href="#cb3-75"></a>  src = dImg(cv::Rect(<span class="dv">0</span>, dImg.rows/<span class="dv">2</span>, dImg.cols, dImg.rows/<span class="dv">2</span>));</span>
+    <span id="cb3-76"><a href="#cb3-76"></a></span>
+    <span id="cb3-77"><a href="#cb3-77"></a>  cv::imshow( ORIGINAL, src );</span>
+    <span id="cb3-78"><a href="#cb3-78"></a></span>
+    <span id="cb3-79"><a href="#cb3-79"></a>  <span class="co">// Create a matrix of the same type and size as src (for dst)</span></span>
+    <span id="cb3-80"><a href="#cb3-80"></a>  dst.create( src.size(), src.type() );</span>
+    <span id="cb3-81"><a href="#cb3-81"></a></span>
+    <span id="cb3-82"><a href="#cb3-82"></a>  <span class="co">// Convert the image to grayscale</span></span>
+    <span id="cb3-83"><a href="#cb3-83"></a>  cv::cvtColor( src, src_gray, CV_BGR2GRAY );</span>
+    <span id="cb3-84"><a href="#cb3-84"></a></span>
+    <span id="cb3-85"><a href="#cb3-85"></a>  cv::namedWindow( window_1, CV_WINDOW_AUTOSIZE );</span>
+    <span id="cb3-86"><a href="#cb3-86"></a>  cv::namedWindow(window_2, CV_WINDOW_AUTOSIZE );</span>
+    <span id="cb3-87"><a href="#cb3-87"></a>  cv::namedWindow(window_3, CV_WINDOW_AUTOSIZE );</span>
+    <span id="cb3-88"><a href="#cb3-88"></a></span>
+    <span id="cb3-89"><a href="#cb3-89"></a>  cv::createTrackbar( <span class="st">&quot;Size Top Hat:&quot;</span>,</span>
+    <span id="cb3-90"><a href="#cb3-90"></a>    window_1, &amp;size_top, max_size, tophat );</span>
+    <span id="cb3-91"><a href="#cb3-91"></a>  cv::createTrackbar( <span class="st">&quot;Size Dilate:&quot;</span>,</span>
+    <span id="cb3-92"><a href="#cb3-92"></a>    window_1, &amp;size_dilate, max_size, tophat );</span>
+    <span id="cb3-93"><a href="#cb3-93"></a>  tophat(<span class="dv">0</span>, <span class="dv">0</span>);</span>
+    <span id="cb3-94"><a href="#cb3-94"></a></span>
+    <span id="cb3-95"><a href="#cb3-95"></a>  cv::createTrackbar(<span class="st">&quot;Threshold RGB:&quot;</span>,</span>
+    <span id="cb3-96"><a href="#cb3-96"></a>    window_2, &amp;threshold_RGB, max_threshold, colorThreshold );</span>
+    <span id="cb3-97"><a href="#cb3-97"></a>  cv::createTrackbar(<span class="st">&quot;Threshold Y_min:&quot;</span>,</span>
+    <span id="cb3-98"><a href="#cb3-98"></a>    window_3, &amp;threshold_Y_min, max_threshold, colorThreshold );</span>
+    <span id="cb3-99"><a href="#cb3-99"></a>  cv::createTrackbar(<span class="st">&quot;Threshold Y_max:&quot;</span>,</span>
+    <span id="cb3-100"><a href="#cb3-100"></a>    window_3, &amp;threshold_Y_max, max_threshold, colorThreshold );</span>
+    <span id="cb3-101"><a href="#cb3-101"></a>  cv::createTrackbar(<span class="st">&quot;Threshold Cb_min:&quot;</span>,</span>
+    <span id="cb3-102"><a href="#cb3-102"></a>    window_3, &amp;threshold_Cb_min, max_threshold, colorThreshold );</span>
+    <span id="cb3-103"><a href="#cb3-103"></a>  cv::createTrackbar(<span class="st">&quot;Threshold Cb_max:&quot;</span>,</span>
+    <span id="cb3-104"><a href="#cb3-104"></a>    window_3, &amp;threshold_Cb_max, max_threshold, colorThreshold );</span>
+    <span id="cb3-105"><a href="#cb3-105"></a>  cv::createTrackbar( <span class="st">&quot;Size Dilate:&quot;</span>,</span>
+    <span id="cb3-106"><a href="#cb3-106"></a>    FINAL, &amp;size_dilate1, max_size, colorThreshold );</span>
+    <span id="cb3-107"><a href="#cb3-107"></a>  colorThreshold( <span class="dv">0</span>, <span class="dv">0</span> );</span>
+    <span id="cb3-108"><a href="#cb3-108"></a></span>
+    <span id="cb3-109"><a href="#cb3-109"></a>  cv::Mat canny_output;</span>
+    <span id="cb3-110"><a href="#cb3-110"></a>  <span class="bu">std::</span>vector&lt;<span class="bu">std::</span>vector&lt;cv::Point&gt; &gt; contours;</span>
+    <span id="cb3-111"><a href="#cb3-111"></a>  <span class="bu">std::</span>vector&lt;cv::Vec4i&gt; hierarchy;</span>
+    <span id="cb3-112"><a href="#cb3-112"></a></span>
+    <span id="cb3-113"><a href="#cb3-113"></a>  <span class="co">// Detect edges using canny</span></span>
+    <span id="cb3-114"><a href="#cb3-114"></a>  cv::Canny( dst, canny_output, <span class="dv">50</span>, <span class="dv">150</span>, <span class="dv">3</span> );</span>
+    <span id="cb3-115"><a href="#cb3-115"></a></span>
+    <span id="cb3-116"><a href="#cb3-116"></a>  <span class="co">// Find contours</span></span>
+    <span id="cb3-117"><a href="#cb3-117"></a>  cv::findContours( canny_output, contours, hierarchy,</span>
+    <span id="cb3-118"><a href="#cb3-118"></a>    cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(<span class="dv">0</span>, <span class="dv">0</span>) );</span>
+    <span id="cb3-119"><a href="#cb3-119"></a></span>
+    <span id="cb3-120"><a href="#cb3-120"></a>  <span class="co">// Get the moments</span></span>
+    <span id="cb3-121"><a href="#cb3-121"></a>  <span class="bu">std::</span>vector&lt;cv::Moments&gt; mu(contours.size());</span>
+    <span id="cb3-122"><a href="#cb3-122"></a>  <span class="cf">for</span>( <span class="dt">int</span> i = <span class="dv">0</span>; i&lt;contours.size(); i++ )</span>
+    <span id="cb3-123"><a href="#cb3-123"></a>  {</span>
+    <span id="cb3-124"><a href="#cb3-124"></a>    mu[i] = cv::moments( contours[i], <span class="kw">false</span> );</span>
+    <span id="cb3-125"><a href="#cb3-125"></a>  }</span>
+    <span id="cb3-126"><a href="#cb3-126"></a></span>
+    <span id="cb3-127"><a href="#cb3-127"></a>  <span class="co">// Get the centroid of figures.</span></span>
+    <span id="cb3-128"><a href="#cb3-128"></a>  <span class="bu">std::</span>vector&lt;cv::Point2f&gt; mc(contours.size());</span>
+    <span id="cb3-129"><a href="#cb3-129"></a>  <span class="cf">for</span>( <span class="dt">int</span> i = <span class="dv">0</span>; i&lt;contours.size(); i++)</span>
+    <span id="cb3-130"><a href="#cb3-130"></a>  {</span>
+    <span id="cb3-131"><a href="#cb3-131"></a>    mc[i] = cv::Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );</span>
+    <span id="cb3-132"><a href="#cb3-132"></a>  }</span>
+    <span id="cb3-133"><a href="#cb3-133"></a></span>
+    <span id="cb3-134"><a href="#cb3-134"></a>  <span class="co">// Draw contours</span></span>
+    <span id="cb3-135"><a href="#cb3-135"></a>  cv::Mat drawing(canny_output.size(),</span>
+    <span id="cb3-136"><a href="#cb3-136"></a>    CV_8UC3, cv::Scalar(<span class="dv">255</span>,<span class="dv">255</span>,<span class="dv">255</span>));</span>
+    <span id="cb3-137"><a href="#cb3-137"></a>  <span class="cf">for</span>( <span class="dt">int</span> i = <span class="dv">0</span>; i&lt;contours.size(); i++ )</span>
+    <span id="cb3-138"><a href="#cb3-138"></a>  {</span>
+    <span id="cb3-139"><a href="#cb3-139"></a>    cv::Scalar color = cv::Scalar(<span class="dv">167</span>,<span class="dv">151</span>,<span class="dv">0</span>); <span class="co">// B G R values</span></span>
+    <span id="cb3-140"><a href="#cb3-140"></a>    cv::drawContours(drawing, contours, i, color, <span class="dv">2</span>, <span class="dv">8</span>,</span>
+    <span id="cb3-141"><a href="#cb3-141"></a>      hierarchy, <span class="dv">0</span>, cv::Point());</span>
+    <span id="cb3-142"><a href="#cb3-142"></a>    cv::circle( drawing, mc[i], <span class="dv">4</span>, color, -<span class="dv">1</span>, <span class="dv">8</span>, <span class="dv">0</span> );</span>
+    <span id="cb3-143"><a href="#cb3-143"></a></span>
+    <span id="cb3-144"><a href="#cb3-144"></a>    <span class="co">// Mark on map</span></span>
+    <span id="cb3-145"><a href="#cb3-145"></a>    detect_garbage::pixel_coordinates srv;</span>
+    <span id="cb3-146"><a href="#cb3-146"></a>    srv.request.u = mc[i].x;</span>
+    <span id="cb3-147"><a href="#cb3-147"></a>    srv.request.v = mc[i].y+dImg.rows/<span class="dv">2</span>;</span>
+    <span id="cb3-148"><a href="#cb3-148"></a></span>
+    <span id="cb3-149"><a href="#cb3-149"></a>    <span class="co">//dereference the clientPtr</span></span>
+    <span id="cb3-150"><a href="#cb3-150"></a>    ros::ServiceClient client = (ros::ServiceClient)*clientPtr;</span>
+    <span id="cb3-151"><a href="#cb3-151"></a></span>
+    <span id="cb3-152"><a href="#cb3-152"></a>    <span class="cf">if</span> (client.call(srv))</span>
+    <span id="cb3-153"><a href="#cb3-153"></a>    {</span>
+    <span id="cb3-154"><a href="#cb3-154"></a>      ROS_INFO(<span class="st">&quot;x: </span><span class="sc">%f</span><span class="st">&quot;</span>, (<span class="dt">float</span>)srv.response.x);</span>
+    <span id="cb3-155"><a href="#cb3-155"></a>      ROS_INFO(<span class="st">&quot;y: </span><span class="sc">%f</span><span class="st">&quot;</span>, (<span class="dt">float</span>)srv.response.y);</span>
+    <span id="cb3-156"><a href="#cb3-156"></a>      ROS_INFO(<span class="st">&quot;z: </span><span class="sc">%f</span><span class="st">&quot;</span>, (<span class="dt">float</span>)srv.response.z);</span>
+    <span id="cb3-157"><a href="#cb3-157"></a>    }</span>
+    <span id="cb3-158"><a href="#cb3-158"></a>    <span class="cf">else</span></span>
+    <span id="cb3-159"><a href="#cb3-159"></a>    {</span>
+    <span id="cb3-160"><a href="#cb3-160"></a>      ROS_ERROR(<span class="st">&quot;Failed to call service from pixel_coordinates&quot;</span>);</span>
+    <span id="cb3-161"><a href="#cb3-161"></a>    }</span>
+    <span id="cb3-162"><a href="#cb3-162"></a>  }</span>
+    <span id="cb3-163"><a href="#cb3-163"></a></span>
+    <span id="cb3-164"><a href="#cb3-164"></a>  <span class="co">// Show the resultant image</span></span>
+    <span id="cb3-165"><a href="#cb3-165"></a>  cv::namedWindow( <span class="st">&quot;Contours&quot;</span>, CV_WINDOW_AUTOSIZE );</span>
+    <span id="cb3-166"><a href="#cb3-166"></a>  cv::imshow( <span class="st">&quot;Contours&quot;</span>, drawing );</span>
+    <span id="cb3-167"><a href="#cb3-167"></a></span>
+    <span id="cb3-168"><a href="#cb3-168"></a>  cv::waitKey(<span class="dv">3</span>);</span>
+    <span id="cb3-169"><a href="#cb3-169"></a>}</span>
+    <span id="cb3-170"><a href="#cb3-170"></a></span>
+    <span id="cb3-171"><a href="#cb3-171"></a><span class="dt">void</span> tophat(<span class="dt">int</span>, <span class="dt">void</span>*)</span>
+    <span id="cb3-172"><a href="#cb3-172"></a>{</span>
+    <span id="cb3-173"><a href="#cb3-173"></a>  cv::Mat im;</span>
+    <span id="cb3-174"><a href="#cb3-174"></a></span>
+    <span id="cb3-175"><a href="#cb3-175"></a>  <span class="co">// Reduce noise with a kernel 3x3</span></span>
+    <span id="cb3-176"><a href="#cb3-176"></a>  blur( src_gray, im, cv::Size(<span class="dv">3</span>,<span class="dv">3</span>) );</span>
+    <span id="cb3-177"><a href="#cb3-177"></a></span>
+    <span id="cb3-178"><a href="#cb3-178"></a>  cv::Mat element = getStructuringElement(</span>
+    <span id="cb3-179"><a href="#cb3-179"></a>    cv::MORPH_ELLIPSE, cv::Size( size_top, size_top ));</span>
+    <span id="cb3-180"><a href="#cb3-180"></a></span>
+    <span id="cb3-181"><a href="#cb3-181"></a>  <span class="co">// Apply the tophat morphology operation</span></span>
+    <span id="cb3-182"><a href="#cb3-182"></a>  cv::morphologyEx( im, im, cv::MORPH_TOPHAT, element );</span>
+    <span id="cb3-183"><a href="#cb3-183"></a></span>
+    <span id="cb3-184"><a href="#cb3-184"></a>  cv::threshold(im, im, <span class="dv">0</span>, <span class="dv">255</span>, CV_THRESH_BINARY | CV_THRESH_OTSU );</span>
+    <span id="cb3-185"><a href="#cb3-185"></a></span>
+    <span id="cb3-186"><a href="#cb3-186"></a>  cv::Mat element2 = getStructuringElement(</span>
+    <span id="cb3-187"><a href="#cb3-187"></a>    cv::MORPH_ELLIPSE, cv::Size( <span class="dv">3</span>, <span class="dv">3</span> ));</span>
+    <span id="cb3-188"><a href="#cb3-188"></a>  cv::Mat element3 = getStructuringElement(</span>
+    <span id="cb3-189"><a href="#cb3-189"></a>    cv::MORPH_ELLIPSE, cv::Size( size_dilate, size_dilate ));</span>
+    <span id="cb3-190"><a href="#cb3-190"></a></span>
+    <span id="cb3-191"><a href="#cb3-191"></a>  cv::morphologyEx( im, im, cv::MORPH_OPEN, element2 );</span>
+    <span id="cb3-192"><a href="#cb3-192"></a>  cv::morphologyEx( im, im, cv::MORPH_DILATE, element3 );</span>
+    <span id="cb3-193"><a href="#cb3-193"></a></span>
+    <span id="cb3-194"><a href="#cb3-194"></a>  mask = cv::Scalar::all(<span class="dv">0</span>);</span>
+    <span id="cb3-195"><a href="#cb3-195"></a></span>
+    <span id="cb3-196"><a href="#cb3-196"></a>  src.copyTo( mask, im);</span>
+    <span id="cb3-197"><a href="#cb3-197"></a></span>
+    <span id="cb3-198"><a href="#cb3-198"></a>  cv::imshow( window_1, mask );</span>
+    <span id="cb3-199"><a href="#cb3-199"></a>}</span>
+    <span id="cb3-200"><a href="#cb3-200"></a></span>
+    <span id="cb3-201"><a href="#cb3-201"></a><span class="dt">void</span> colorThreshold( <span class="dt">int</span>, <span class="dt">void</span>* )</span>
+    <span id="cb3-202"><a href="#cb3-202"></a>{</span>
+    <span id="cb3-203"><a href="#cb3-203"></a>  cv::Mat im1, im2;</span>
+    <span id="cb3-204"><a href="#cb3-204"></a></span>
+    <span id="cb3-205"><a href="#cb3-205"></a>  cv::inRange(mask, threshold_RGB,</span>
+    <span id="cb3-206"><a href="#cb3-206"></a>    cv::Scalar(max_threshold, max_threshold, max_threshold), im1);</span>
+    <span id="cb3-207"><a href="#cb3-207"></a>  cv::imshow( window_2, im1);</span>
+    <span id="cb3-208"><a href="#cb3-208"></a></span>
+    <span id="cb3-209"><a href="#cb3-209"></a>  cv::cvtColor(mask, im2, CV_BGR2YCrCb);</span>
+    <span id="cb3-210"><a href="#cb3-210"></a>  cv::inRange(im2,</span>
+    <span id="cb3-211"><a href="#cb3-211"></a>    cv::Scalar(threshold_Y_min, <span class="dv">0</span>, threshold_Cb_min),</span>
+    <span id="cb3-212"><a href="#cb3-212"></a>    cv::Scalar(threshold_Y_max, max_threshold, threshold_Cb_max), im2);</span>
+    <span id="cb3-213"><a href="#cb3-213"></a>  im2=<span class="dv">255</span>-im2;</span>
+    <span id="cb3-214"><a href="#cb3-214"></a>  cv::imshow( window_3, im2);</span>
+    <span id="cb3-215"><a href="#cb3-215"></a></span>
+    <span id="cb3-216"><a href="#cb3-216"></a>  dst=im1+im2;</span>
+    <span id="cb3-217"><a href="#cb3-217"></a></span>
+    <span id="cb3-218"><a href="#cb3-218"></a>  cv::Mat element2 = getStructuringElement(</span>
+    <span id="cb3-219"><a href="#cb3-219"></a>    cv::MORPH_ELLIPSE, cv::Size( <span class="dv">3</span>, <span class="dv">3</span> ));</span>
+    <span id="cb3-220"><a href="#cb3-220"></a>  cv::Mat element3 = getStructuringElement(</span>
+    <span id="cb3-221"><a href="#cb3-221"></a>    cv::MORPH_ELLIPSE, cv::Size( size_dilate1, size_dilate ));</span>
+    <span id="cb3-222"><a href="#cb3-222"></a></span>
+    <span id="cb3-223"><a href="#cb3-223"></a>  cv::morphologyEx( dst, dst, cv::MORPH_OPEN, element2 );</span>
+    <span id="cb3-224"><a href="#cb3-224"></a>  cv::morphologyEx( dst, dst, cv::MORPH_DILATE, element3 );</span>
+    <span id="cb3-225"><a href="#cb3-225"></a></span>
+    <span id="cb3-226"><a href="#cb3-226"></a>  cv::imshow( FINAL, dst);</span>
+    <span id="cb3-227"><a href="#cb3-227"></a>}</span></code></pre></div>
+    
+    <h2 id="map_marker.cpp" class="unnumbered">map_marker.cpp</h2>
+    <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1"></a><span class="pp">#include </span><span class="im">&lt;ros/ros.h&gt;</span></span>
+    <span id="cb4-2"><a href="#cb4-2"></a><span class="pp">#include </span><span class="im">&lt;pcl_ros/point_cloud.h&gt;</span></span>
+    <span id="cb4-3"><a href="#cb4-3"></a><span class="pp">#include </span><span class="im">&lt;pcl/point_types.h&gt;</span></span>
+    <span id="cb4-4"><a href="#cb4-4"></a><span class="pp">#include </span><span class="im">&lt;pcl_ros/transforms.h&gt;</span></span>
+    <span id="cb4-5"><a href="#cb4-5"></a><span class="pp">#include </span><span class="im">&lt;pcl/conversions.h&gt;</span></span>
+    <span id="cb4-6"><a href="#cb4-6"></a><span class="pp">#include </span><span class="im">&lt;pcl/PCLPointCloud2.h&gt;</span></span>
+    <span id="cb4-7"><a href="#cb4-7"></a><span class="pp">#include </span><span class="im">&lt;pcl_conversions/pcl_conversions.h&gt;</span></span>
+    <span id="cb4-8"><a href="#cb4-8"></a><span class="pp">#include </span><span class="im">&lt;visualization_msgs/Marker.h&gt;</span></span>
+    <span id="cb4-9"><a href="#cb4-9"></a><span class="pp">#include </span><span class="im">&quot;detect_garbage/pixel_coordinates.h&quot;</span></span>
+    <span id="cb4-10"><a href="#cb4-10"></a></span>
+    <span id="cb4-11"><a href="#cb4-11"></a>sensor_msgs::PointCloud2 my_pcl;</span>
+    <span id="cb4-12"><a href="#cb4-12"></a></span>
+    <span id="cb4-13"><a href="#cb4-13"></a><span class="dt">int</span> count = <span class="dv">0</span>;</span>
+    <span id="cb4-14"><a href="#cb4-14"></a></span>
+    <span id="cb4-15"><a href="#cb4-15"></a><span class="dt">bool</span> calc(</span>
+    <span id="cb4-16"><a href="#cb4-16"></a>  detect_garbage::pixel_coordinates::Request  &amp;req,</span>
+    <span id="cb4-17"><a href="#cb4-17"></a>  detect_garbage::pixel_coordinates::Response &amp;res);</span>
+    <span id="cb4-18"><a href="#cb4-18"></a></span>
+    <span id="cb4-19"><a href="#cb4-19"></a><span class="dt">void</span> callback(<span class="at">const</span> sensor_msgs::PointCloud2ConstPtr&amp; msg)</span>
+    <span id="cb4-20"><a href="#cb4-20"></a>{</span>
+    <span id="cb4-21"><a href="#cb4-21"></a>  my_pcl = *msg;    </span>
+    <span id="cb4-22"><a href="#cb4-22"></a>}</span>
+    <span id="cb4-23"><a href="#cb4-23"></a></span>
+    <span id="cb4-24"><a href="#cb4-24"></a><span class="dt">int</span> main (<span class="dt">int</span> argc, <span class="dt">char</span> **argv)</span>
+    <span id="cb4-25"><a href="#cb4-25"></a>{</span>
+    <span id="cb4-26"><a href="#cb4-26"></a>  ros::init(argc, argv, <span class="st">&quot;map_marker&quot;</span>);</span>
+    <span id="cb4-27"><a href="#cb4-27"></a></span>
+    <span id="cb4-28"><a href="#cb4-28"></a>  ros::NodeHandle n;</span>
+    <span id="cb4-29"><a href="#cb4-29"></a></span>
+    <span id="cb4-30"><a href="#cb4-30"></a>  ros::Subscriber sub = n.subscribe&lt;sensor_msgs::PointCloud2&gt;</span>
+    <span id="cb4-31"><a href="#cb4-31"></a>    (<span class="st">&quot;/camera/depth_registered/points&quot;</span>, <span class="dv">1</span>, callback);</span>
+    <span id="cb4-32"><a href="#cb4-32"></a></span>
+    <span id="cb4-33"><a href="#cb4-33"></a>  ros::ServiceServer service = n.advertiseService(</span>
+    <span id="cb4-34"><a href="#cb4-34"></a>    <span class="st">&quot;pixel_coordinates&quot;</span>, calc);</span>
+    <span id="cb4-35"><a href="#cb4-35"></a></span>
+    <span id="cb4-36"><a href="#cb4-36"></a>  ros::spin();</span>
+    <span id="cb4-37"><a href="#cb4-37"></a></span>
+    <span id="cb4-38"><a href="#cb4-38"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+    <span id="cb4-39"><a href="#cb4-39"></a>}</span>
+    <span id="cb4-40"><a href="#cb4-40"></a></span>
+    <span id="cb4-41"><a href="#cb4-41"></a><span class="dt">bool</span> calc(</span>
+    <span id="cb4-42"><a href="#cb4-42"></a>  detect_garbage::pixel_coordinates::Request  &amp;req,</span>
+    <span id="cb4-43"><a href="#cb4-43"></a>  detect_garbage::pixel_coordinates::Response &amp;res)</span>
+    <span id="cb4-44"><a href="#cb4-44"></a>{</span>
+    <span id="cb4-45"><a href="#cb4-45"></a>  ros::NodeHandle nh;</span>
+    <span id="cb4-46"><a href="#cb4-46"></a>  ros::Publisher marker_pub;</span>
+    <span id="cb4-47"><a href="#cb4-47"></a></span>
+    <span id="cb4-48"><a href="#cb4-48"></a>  <span class="dt">int</span> arrayPosition = req.v*my_pcl.row_step + req.u*my_pcl.point_step;</span>
+    <span id="cb4-49"><a href="#cb4-49"></a>  <span class="dt">int</span> arrayPosX = arrayPosition</span>
+    <span id="cb4-50"><a href="#cb4-50"></a>    + my_pcl.fields[<span class="dv">0</span>].offset; <span class="co">// X has an offset of 0</span></span>
+    <span id="cb4-51"><a href="#cb4-51"></a>  <span class="dt">int</span> arrayPosY = arrayPosition</span>
+    <span id="cb4-52"><a href="#cb4-52"></a>    + my_pcl.fields[<span class="dv">1</span>].offset; <span class="co">// Y has an offset of 4</span></span>
+    <span id="cb4-53"><a href="#cb4-53"></a>  <span class="dt">int</span> arrayPosZ = arrayPosition</span>
+    <span id="cb4-54"><a href="#cb4-54"></a>    + my_pcl.fields[<span class="dv">2</span>].offset; <span class="co">// Z has an offset of 8</span></span>
+    <span id="cb4-55"><a href="#cb4-55"></a></span>
+    <span id="cb4-56"><a href="#cb4-56"></a>  <span class="dt">float</span> X = <span class="dv">0</span>;</span>
+    <span id="cb4-57"><a href="#cb4-57"></a>  <span class="dt">float</span> Y = <span class="dv">0</span>;</span>
+    <span id="cb4-58"><a href="#cb4-58"></a>  <span class="dt">float</span> Z = <span class="dv">0</span>;</span>
+    <span id="cb4-59"><a href="#cb4-59"></a></span>
+    <span id="cb4-60"><a href="#cb4-60"></a>  memcpy(&amp;X, &amp;my_pcl.data[arrayPosX], <span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+    <span id="cb4-61"><a href="#cb4-61"></a>  memcpy(&amp;Y, &amp;my_pcl.data[arrayPosY], <span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+    <span id="cb4-62"><a href="#cb4-62"></a>  memcpy(&amp;Z, &amp;my_pcl.data[arrayPosZ], <span class="kw">sizeof</span>(<span class="dt">float</span>));</span>
+    <span id="cb4-63"><a href="#cb4-63"></a></span>
+    <span id="cb4-64"><a href="#cb4-64"></a>  ROS_INFO(<span class="st">&quot;</span><span class="sc">%f</span><span class="st"> </span><span class="sc">%f</span><span class="st"> </span><span class="sc">%f</span><span class="st">&quot;</span>, X,Y,Z);</span>
+    <span id="cb4-65"><a href="#cb4-65"></a></span>
+    <span id="cb4-66"><a href="#cb4-66"></a>  res.x = X;</span>
+    <span id="cb4-67"><a href="#cb4-67"></a>  res.y = Y;</span>
+    <span id="cb4-68"><a href="#cb4-68"></a>  res.z = Z;</span>
+    <span id="cb4-69"><a href="#cb4-69"></a></span>
+    <span id="cb4-70"><a href="#cb4-70"></a>  <span class="co">/*</span></span>
+    <span id="cb4-71"><a href="#cb4-71"></a><span class="co">  // TF</span></span>
+    <span id="cb4-72"><a href="#cb4-72"></a><span class="co">  tf::Vector3 point(res.x,res.y,res.z);</span></span>
+    <span id="cb4-73"><a href="#cb4-73"></a><span class="co">  tf::TransformListener listener;</span></span>
+    <span id="cb4-74"><a href="#cb4-74"></a><span class="co">  tf::StampedTransform transform;</span></span>
+    <span id="cb4-75"><a href="#cb4-75"></a><span class="co">  try{</span></span>
+    <span id="cb4-76"><a href="#cb4-76"></a><span class="co">    listener.lookupTransform(&quot;/map&quot;,</span></span>
+    <span id="cb4-77"><a href="#cb4-77"></a><span class="co">      &quot;/camera_color_frame&quot;, ros::Time::now(), transform);</span></span>
+    <span id="cb4-78"><a href="#cb4-78"></a><span class="co">  }</span></span>
+    <span id="cb4-79"><a href="#cb4-79"></a><span class="co">  catch (tf::TransformException ex){</span></span>
+    <span id="cb4-80"><a href="#cb4-80"></a><span class="co">    ROS_WARN(&quot;Map to camera transform unavailable %s&quot;, ex.what());</span></span>
+    <span id="cb4-81"><a href="#cb4-81"></a><span class="co">  }</span></span>
+    <span id="cb4-82"><a href="#cb4-82"></a></span>
+    <span id="cb4-83"><a href="#cb4-83"></a><span class="co">  tf::Vector3 point_bl = transform * point;</span></span>
+    <span id="cb4-84"><a href="#cb4-84"></a></span>
+    <span id="cb4-85"><a href="#cb4-85"></a><span class="co">  ROS_INFO(&quot;%f %f %f&quot;, point_bl[0],point_bl[1],point_bl[2]);</span></span>
+    <span id="cb4-86"><a href="#cb4-86"></a><span class="co">  */</span></span>
+    <span id="cb4-87"><a href="#cb4-87"></a></span>
+    <span id="cb4-88"><a href="#cb4-88"></a>  <span class="co">// Set our shape type to be a sphere</span></span>
+    <span id="cb4-89"><a href="#cb4-89"></a>  <span class="dt">uint32_t</span> shape = visualization_msgs::Marker::SPHERE;</span>
+    <span id="cb4-90"><a href="#cb4-90"></a></span>
+    <span id="cb4-91"><a href="#cb4-91"></a>  visualization_msgs::Marker marker;</span>
+    <span id="cb4-92"><a href="#cb4-92"></a>  <span class="co">// Set the frame ID and timestamp.</span></span>
+    <span id="cb4-93"><a href="#cb4-93"></a>  marker.header.frame_id = <span class="st">&quot;/camera_color_optical_frame&quot;</span>;</span>
+    <span id="cb4-94"><a href="#cb4-94"></a>  marker.header.stamp = ros::Time::now();</span>
+    <span id="cb4-95"><a href="#cb4-95"></a></span>
+    <span id="cb4-96"><a href="#cb4-96"></a>  <span class="co">// Set the namespace and id for this marker.</span></span>
+    <span id="cb4-97"><a href="#cb4-97"></a>  marker.ns = <span class="st">&quot;basic_shapes&quot;</span>;</span>
+    <span id="cb4-98"><a href="#cb4-98"></a>  marker.id = count;</span>
+    <span id="cb4-99"><a href="#cb4-99"></a></span>
+    <span id="cb4-100"><a href="#cb4-100"></a>  <span class="co">// Set the marker type.</span></span>
+    <span id="cb4-101"><a href="#cb4-101"></a>  marker.type = shape;</span>
+    <span id="cb4-102"><a href="#cb4-102"></a></span>
+    <span id="cb4-103"><a href="#cb4-103"></a>  <span class="co">// Set the marker action.  </span></span>
+    <span id="cb4-104"><a href="#cb4-104"></a>  <span class="co">// Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)</span></span>
+    <span id="cb4-105"><a href="#cb4-105"></a>  marker.action = visualization_msgs::Marker::ADD;</span>
+    <span id="cb4-106"><a href="#cb4-106"></a></span>
+    <span id="cb4-107"><a href="#cb4-107"></a>  <span class="co">// Set the pose of the marker.  </span></span>
+    <span id="cb4-108"><a href="#cb4-108"></a>  <span class="co">// This is a full 6DOF pose</span></span>
+    <span id="cb4-109"><a href="#cb4-109"></a>  <span class="co">// relative to the frame/time specified in the header</span></span>
+    <span id="cb4-110"><a href="#cb4-110"></a>  marker.pose.position.x = res.x;</span>
+    <span id="cb4-111"><a href="#cb4-111"></a>  marker.pose.position.y = res.y;</span>
+    <span id="cb4-112"><a href="#cb4-112"></a>  marker.pose.position.z = res.z;</span>
+    <span id="cb4-113"><a href="#cb4-113"></a>  marker.pose.orientation.x = <span class="fl">0.0</span>;</span>
+    <span id="cb4-114"><a href="#cb4-114"></a>  marker.pose.orientation.y = <span class="fl">0.0</span>;</span>
+    <span id="cb4-115"><a href="#cb4-115"></a>  marker.pose.orientation.z = <span class="fl">0.0</span>;</span>
+    <span id="cb4-116"><a href="#cb4-116"></a>  marker.pose.orientation.w = <span class="fl">1.0</span>;</span>
+    <span id="cb4-117"><a href="#cb4-117"></a></span>
+    <span id="cb4-118"><a href="#cb4-118"></a>  <span class="co">// Set the scale of the marker -- 1x1x1 here means 1m on a side</span></span>
+    <span id="cb4-119"><a href="#cb4-119"></a>  marker.scale.x = <span class="fl">0.1</span>;</span>
+    <span id="cb4-120"><a href="#cb4-120"></a>  marker.scale.y = <span class="fl">0.1</span>;</span>
+    <span id="cb4-121"><a href="#cb4-121"></a>  marker.scale.z = <span class="fl">0.1</span>;</span>
+    <span id="cb4-122"><a href="#cb4-122"></a></span>
+    <span id="cb4-123"><a href="#cb4-123"></a>  <span class="co">// Set the color -- be sure to set alpha to something non-zero!</span></span>
+    <span id="cb4-124"><a href="#cb4-124"></a>  marker.color.r = <span class="fl">1.0</span><span class="bu">f</span>;</span>
+    <span id="cb4-125"><a href="#cb4-125"></a>  marker.color.g = <span class="fl">0.0</span><span class="bu">f</span>;</span>
+    <span id="cb4-126"><a href="#cb4-126"></a>  marker.color.b = <span class="fl">0.0</span><span class="bu">f</span>;</span>
+    <span id="cb4-127"><a href="#cb4-127"></a>  marker.color.a = <span class="fl">1.0</span>;</span>
+    <span id="cb4-128"><a href="#cb4-128"></a></span>
+    <span id="cb4-129"><a href="#cb4-129"></a>  marker.lifetime = ros::Duration();</span>
+    <span id="cb4-130"><a href="#cb4-130"></a></span>
+    <span id="cb4-131"><a href="#cb4-131"></a>  marker_pub = nh.advertise&lt;visualization_msgs::Marker&gt;</span>
+    <span id="cb4-132"><a href="#cb4-132"></a>    (<span class="st">&quot;/visualization_marker&quot;</span>, <span class="dv">20</span>, <span class="dv">1</span>);</span>
+    <span id="cb4-133"><a href="#cb4-133"></a></span>
+    <span id="cb4-134"><a href="#cb4-134"></a>  ROS_ERROR(<span class="st">&quot;Waiting for subscibers&quot;</span>);</span>
+    <span id="cb4-135"><a href="#cb4-135"></a></span>
+    <span id="cb4-136"><a href="#cb4-136"></a>  <span class="cf">while</span>(marker_pub.getNumSubscribers()==<span class="dv">0</span>)</span>
+    <span id="cb4-137"><a href="#cb4-137"></a>  {</span>
+    <span id="cb4-138"><a href="#cb4-138"></a></span>
+    <span id="cb4-139"><a href="#cb4-139"></a>  }</span>
+    <span id="cb4-140"><a href="#cb4-140"></a>  ROS_ERROR(<span class="st">&quot;Got subscriber&quot;</span>);</span>
+    <span id="cb4-141"><a href="#cb4-141"></a></span>
+    <span id="cb4-142"><a href="#cb4-142"></a>  marker_pub.publish(marker);</span>
+    <span id="cb4-143"><a href="#cb4-143"></a></span>
+    <span id="cb4-144"><a href="#cb4-144"></a>  count++;</span>
+    <span id="cb4-145"><a href="#cb4-145"></a></span>
+    <span id="cb4-146"><a href="#cb4-146"></a>  <span class="cf">return</span> <span class="kw">true</span>;</span>
+    <span id="cb4-147"><a href="#cb4-147"></a>}</span></code></pre></div>
+    <h2 id="laser_measure.py" class="unnumbered">laser_measure.py</h2>
+    <div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">#!/usr/bin/env python</span></span>
+    <span id="cb5-2"><a href="#cb5-2"></a></span>
+    <span id="cb5-3"><a href="#cb5-3"></a><span class="im">import</span> rospy</span>
+    <span id="cb5-4"><a href="#cb5-4"></a><span class="im">from</span> sensor_msgs.msg <span class="im">import</span> LaserScan</span>
+    <span id="cb5-5"><a href="#cb5-5"></a></span>
+    <span id="cb5-6"><a href="#cb5-6"></a><span class="kw">def</span> callback(msg):</span>
+    <span id="cb5-7"><a href="#cb5-7"></a>  <span class="bu">print</span> msg.ranges[<span class="dv">270</span>]</span>
+    <span id="cb5-8"><a href="#cb5-8"></a></span>
+    <span id="cb5-9"><a href="#cb5-9"></a>rospy.init_node(<span class="st">&#39;sub_node&#39;</span>)</span>
+    <span id="cb5-10"><a href="#cb5-10"></a>sub <span class="op">=</span> rospy.Subscriber(<span class="st">&quot;/scan&quot;</span>, LaserScan, callback)</span>
+    <span id="cb5-11"><a href="#cb5-11"></a></span>
+    <span id="cb5-12"><a href="#cb5-12"></a>rospy.spin()</span></code></pre></div>
+    
+    <h2 id="collect_data_node.py" class="unnumbered">collect_data_node.py</h2>
+    <div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="co">#!/usr/bin/env python</span></span>
+    <span id="cb6-2"><a href="#cb6-2"></a></span>
+    <span id="cb6-3"><a href="#cb6-3"></a><span class="im">import</span> argparse       <span class="co">#Read command line arguments</span></span>
+    <span id="cb6-4"><a href="#cb6-4"></a><span class="im">import</span> numpy <span class="im">as</span> np    <span class="co">#Arrays and opencv images</span></span>
+    <span id="cb6-5"><a href="#cb6-5"></a></span>
+    <span id="cb6-6"><a href="#cb6-6"></a><span class="im">import</span> rospy          <span class="co">#ros python module</span></span>
+    <span id="cb6-7"><a href="#cb6-7"></a><span class="im">import</span> cv2</span>
+    <span id="cb6-8"><a href="#cb6-8"></a></span>
+    <span id="cb6-9"><a href="#cb6-9"></a><span class="im">from</span> cv_bridge <span class="im">import</span> CvBridge, CvBridgeError</span>
+    <span id="cb6-10"><a href="#cb6-10"></a><span class="im">from</span> sensor_msgs.msg <span class="im">import</span> Image, LaserScan</span>
+    <span id="cb6-11"><a href="#cb6-11"></a></span>
+    <span id="cb6-12"><a href="#cb6-12"></a><span class="co">#-----------------------------------------</span></span>
+    <span id="cb6-13"><a href="#cb6-13"></a><span class="co">#--- GLOBAL VARIABLES</span></span>
+    <span id="cb6-14"><a href="#cb6-14"></a><span class="co">#-----------------------------------------</span></span>
+    <span id="cb6-15"><a href="#cb6-15"></a>bridge <span class="op">=</span> CvBridge()</span>
+    <span id="cb6-16"><a href="#cb6-16"></a>cv_image <span class="op">=</span> []</span>
+    <span id="cb6-17"><a href="#cb6-17"></a>laser_scan <span class="op">=</span> []</span>
+    <span id="cb6-18"><a href="#cb6-18"></a>image_stamp <span class="op">=</span> []</span>
+    <span id="cb6-19"><a href="#cb6-19"></a></span>
+    <span id="cb6-20"><a href="#cb6-20"></a><span class="co">#-----------------------------------------</span></span>
+    <span id="cb6-21"><a href="#cb6-21"></a><span class="co">#--- FUNCTION DEFINITION</span></span>
+    <span id="cb6-22"><a href="#cb6-22"></a><span class="co">#-----------------------------------------</span></span>
+    <span id="cb6-23"><a href="#cb6-23"></a><span class="kw">def</span> ImageReceivedCallback(data):</span>
+    <span id="cb6-24"><a href="#cb6-24"></a>  <span class="kw">global</span> cv_image</span>
+    <span id="cb6-25"><a href="#cb6-25"></a>  <span class="kw">global</span> bridge</span>
+    <span id="cb6-26"><a href="#cb6-26"></a>  <span class="kw">global</span> image_stamp</span>
+    <span id="cb6-27"><a href="#cb6-27"></a></span>
+    <span id="cb6-28"><a href="#cb6-28"></a>  <span class="co">#print(&quot;Received image&quot;)</span></span>
+    <span id="cb6-29"><a href="#cb6-29"></a></span>
+    <span id="cb6-30"><a href="#cb6-30"></a>  <span class="cf">try</span>:</span>
+    <span id="cb6-31"><a href="#cb6-31"></a>    cv_image <span class="op">=</span> bridge.imgmsg_to_cv2(data, <span class="st">&quot;bgr8&quot;</span>)</span>
+    <span id="cb6-32"><a href="#cb6-32"></a>    image_header <span class="op">=</span> data.header</span>
+    <span id="cb6-33"><a href="#cb6-33"></a>    image_stamp <span class="op">=</span> data.header.stamp</span>
+    <span id="cb6-34"><a href="#cb6-34"></a></span>
+    <span id="cb6-35"><a href="#cb6-35"></a>  <span class="cf">except</span> CvBridgeError <span class="im">as</span> e:</span>
+    <span id="cb6-36"><a href="#cb6-36"></a>    <span class="bu">print</span>(e)</span>
+    <span id="cb6-37"><a href="#cb6-37"></a></span>
+    <span id="cb6-38"><a href="#cb6-38"></a><span class="kw">def</span> LaserReceivedCallback(data):</span>
+    <span id="cb6-39"><a href="#cb6-39"></a>  <span class="kw">global</span> laser_scan</span>
+    <span id="cb6-40"><a href="#cb6-40"></a></span>
+    <span id="cb6-41"><a href="#cb6-41"></a>  <span class="bu">print</span>(<span class="st">&quot;Received laser&quot;</span>)</span>
+    <span id="cb6-42"><a href="#cb6-42"></a>  laser_scan <span class="op">=</span> data</span>
+    <span id="cb6-43"><a href="#cb6-43"></a></span>
+    <span id="cb6-44"><a href="#cb6-44"></a><span class="co">#-----------------------------------------</span></span>
+    <span id="cb6-45"><a href="#cb6-45"></a><span class="co">#--- MAIN</span></span>
+    <span id="cb6-46"><a href="#cb6-46"></a><span class="co">#-----------------------------------------</span></span>
+    <span id="cb6-47"><a href="#cb6-47"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+    <span id="cb6-48"><a href="#cb6-48"></a></span>
+    <span id="cb6-49"><a href="#cb6-49"></a>  <span class="kw">global</span> cv_image</span>
+    <span id="cb6-50"><a href="#cb6-50"></a>  <span class="kw">global</span> image_stamp</span>
+    <span id="cb6-51"><a href="#cb6-51"></a></span>
+    <span id="cb6-52"><a href="#cb6-52"></a>  <span class="co">#---------------------------------------</span></span>
+    <span id="cb6-53"><a href="#cb6-53"></a>  <span class="co">#--- Argument parser</span></span>
+    <span id="cb6-54"><a href="#cb6-54"></a>  <span class="co">#---------------------------------------</span></span>
+    <span id="cb6-55"><a href="#cb6-55"></a>  ap <span class="op">=</span> argparse.ArgumentParser()</span>
+    <span id="cb6-56"><a href="#cb6-56"></a>  ap.add_argument(<span class="st">&quot;-p&quot;</span>, <span class="st">&quot;--capture_path&quot;</span>,</span>
+    <span id="cb6-57"><a href="#cb6-57"></a>    <span class="bu">help</span> <span class="op">=</span> <span class="st">&quot;path to the capture folder&quot;</span>, default <span class="op">=</span> <span class="st">&quot;.&quot;</span>)</span>
+    <span id="cb6-58"><a href="#cb6-58"></a>  args <span class="op">=</span> <span class="bu">vars</span>(ap.parse_args())</span>
+    <span id="cb6-59"><a href="#cb6-59"></a></span>
+    <span id="cb6-60"><a href="#cb6-60"></a>  <span class="co">#---------------------------------------</span></span>
+    <span id="cb6-61"><a href="#cb6-61"></a>  <span class="co">#--- Intitialization</span></span>
+    <span id="cb6-62"><a href="#cb6-62"></a>  <span class="co">#---------------------------------------</span></span>
+    <span id="cb6-63"><a href="#cb6-63"></a>  rospy.init_node(<span class="st">&#39;collect_data_node&#39;</span>) <span class="co">#ros node init</span></span>
+    <span id="cb6-64"><a href="#cb6-64"></a>  cv2.namedWindow(<span class="st">&quot;Camera&quot;</span>, cv2.WINDOW_NORMAL)</span>
+    <span id="cb6-65"><a href="#cb6-65"></a></span>
+    <span id="cb6-66"><a href="#cb6-66"></a>  h <span class="op">=</span> <span class="bu">open</span>(<span class="st">&#39;laser.txt&#39;</span>,<span class="st">&#39;w&#39;</span>)</span>
+    <span id="cb6-67"><a href="#cb6-67"></a>  hi <span class="op">=</span> <span class="bu">open</span>(<span class="st">&#39;image_stamps.txt&#39;</span>,<span class="st">&#39;w&#39;</span>)</span>
+    <span id="cb6-68"><a href="#cb6-68"></a></span>
+    <span id="cb6-69"><a href="#cb6-69"></a>  image_sub <span class="op">=</span> rospy.Subscriber(<span class="st">&quot;/camera/color/image_raw&quot;</span>,</span>
+    <span id="cb6-70"><a href="#cb6-70"></a>    Image, ImageReceivedCallback)</span>
+    <span id="cb6-71"><a href="#cb6-71"></a>  laser_sub <span class="op">=</span> rospy.Subscriber(<span class="st">&quot;/scan&quot;</span>,</span>
+    <span id="cb6-72"><a href="#cb6-72"></a>    LaserScan, LaserReceivedCallback)</span>
+    <span id="cb6-73"><a href="#cb6-73"></a></span>
+    <span id="cb6-74"><a href="#cb6-74"></a>  <span class="co">#time for the tf listener to receive some transforms</span></span>
+    <span id="cb6-75"><a href="#cb6-75"></a>  rospy.sleep(rospy.Duration(<span class="fl">0.1</span>))</span>
+    <span id="cb6-76"><a href="#cb6-76"></a></span>
+    <span id="cb6-77"><a href="#cb6-77"></a>  rate <span class="op">=</span> rospy.Rate(<span class="dv">100</span>) <span class="co"># 10hz</span></span>
+    <span id="cb6-78"><a href="#cb6-78"></a>  count <span class="op">=</span> <span class="dv">1</span></span>
+    <span id="cb6-79"><a href="#cb6-79"></a></span>
+    <span id="cb6-80"><a href="#cb6-80"></a>  <span class="cf">while</span> <span class="kw">not</span> rospy.is_shutdown():</span>
+    <span id="cb6-81"><a href="#cb6-81"></a></span>
+    <span id="cb6-82"><a href="#cb6-82"></a>    <span class="co">#print(&quot;One iteration complete&quot;)</span></span>
+    <span id="cb6-83"><a href="#cb6-83"></a></span>
+    <span id="cb6-84"><a href="#cb6-84"></a>    <span class="co">#cv2.imshow(&quot;Camera&quot;, cv_image)</span></span>
+    <span id="cb6-85"><a href="#cb6-85"></a></span>
+    <span id="cb6-86"><a href="#cb6-86"></a>    key <span class="op">=</span> (cv2.waitKey(<span class="dv">20</span>) <span class="op">&amp;</span> <span class="dv">255</span>)</span>
+    <span id="cb6-87"><a href="#cb6-87"></a>    <span class="co">#print(&quot;key = &quot; + str(key))</span></span>
+    <span id="cb6-88"><a href="#cb6-88"></a></span>
+    <span id="cb6-89"><a href="#cb6-89"></a>    <span class="co">#&lt;timestamp&gt; StartAngleRads AngleIncrementRads</span></span>
+    <span id="cb6-90"><a href="#cb6-90"></a>    <span class="co">#EndAngleRads RangeUnitType NoAngles [Ranges]</span></span>
+    <span id="cb6-91"><a href="#cb6-91"></a>    range_unit_type <span class="op">=</span> <span class="dv">3</span> <span class="co">#for meters</span></span>
+    <span id="cb6-92"><a href="#cb6-92"></a>    ss_ranges <span class="op">=</span> <span class="st">&quot; &quot;</span>.join([<span class="st">&quot;</span><span class="sc">%.8f</span><span class="st">&quot;</span> <span class="op">%</span> i <span class="cf">for</span> i <span class="kw">in</span> laser_scan.ranges])</span>
+    <span id="cb6-93"><a href="#cb6-93"></a></span>
+    <span id="cb6-94"><a href="#cb6-94"></a>    ss_time <span class="op">=</span> <span class="bu">str</span>(laser_scan.header.stamp.secs) <span class="op">+</span> <span class="st">&quot;.&quot;</span></span>
+    <span id="cb6-95"><a href="#cb6-95"></a>      <span class="op">+</span> <span class="bu">str</span>(laser_scan.header.stamp.nsecs)</span>
+    <span id="cb6-96"><a href="#cb6-96"></a>    ss <span class="op">=</span> ss_time <span class="op">+</span> <span class="st">&quot; &quot;</span> <span class="op">+</span> <span class="bu">str</span>(laser_scan.angle_min)</span>
+    <span id="cb6-97"><a href="#cb6-97"></a>      <span class="op">+</span> <span class="st">&quot; &quot;</span> <span class="op">+</span> <span class="bu">str</span>(laser_scan.angle_increment)  <span class="op">+</span> <span class="st">&quot; &quot;</span></span>
+    <span id="cb6-98"><a href="#cb6-98"></a>      <span class="op">+</span> <span class="bu">str</span>(laser_scan.angle_max) <span class="op">+</span> <span class="st">&quot; &quot;</span></span>
+    <span id="cb6-99"><a href="#cb6-99"></a>      <span class="op">+</span> <span class="bu">str</span>(range_unit_type) <span class="op">+</span> <span class="st">&quot; &quot;</span> <span class="op">+</span> <span class="bu">str</span>(<span class="bu">len</span>(laser_scan.ranges))</span>
+    <span id="cb6-100"><a href="#cb6-100"></a>      <span class="op">+</span> <span class="st">&quot; &quot;</span> <span class="op">+</span> ss_ranges <span class="op">+</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span></span>
+    <span id="cb6-101"><a href="#cb6-101"></a></span>
+    <span id="cb6-102"><a href="#cb6-102"></a>    h.write(ss)</span>
+    <span id="cb6-103"><a href="#cb6-103"></a></span>
+    <span id="cb6-104"><a href="#cb6-104"></a>    <span class="cf">if</span> key <span class="op">==</span> <span class="dv">113</span>: <span class="co">#q for quit</span></span>
+    <span id="cb6-105"><a href="#cb6-105"></a>      <span class="bu">print</span>(<span class="st">&quot;Quit&quot;</span>)</span>
+    <span id="cb6-106"><a href="#cb6-106"></a>      <span class="cf">break</span></span>
+    <span id="cb6-107"><a href="#cb6-107"></a>    <span class="cf">elif</span> key <span class="op">==</span> <span class="dv">115</span>: <span class="co">#s for save</span></span>
+    <span id="cb6-108"><a href="#cb6-108"></a>      <span class="bu">print</span>(<span class="st">&quot;Saving image and laser scan number &quot;</span> <span class="op">+</span> <span class="bu">str</span>(count))</span>
+    <span id="cb6-109"><a href="#cb6-109"></a>      cv2.imwrite(<span class="st">&quot;image_&quot;</span> <span class="op">+</span> <span class="bu">str</span>(count) <span class="op">+</span> <span class="st">&quot;.bmp&quot;</span>, cv_image)</span>
+    <span id="cb6-110"><a href="#cb6-110"></a></span>
+    <span id="cb6-111"><a href="#cb6-111"></a>      ss <span class="op">=</span> <span class="bu">str</span>(image_stamp.secs) <span class="op">+</span> <span class="st">&quot;.&quot;</span> <span class="op">+</span> <span class="bu">str</span>(image_stamp.nsecs)</span>
+    <span id="cb6-112"><a href="#cb6-112"></a>        <span class="op">+</span> <span class="st">&quot; &quot;</span> <span class="op">+</span> <span class="bu">str</span>(image_stamp.secs) <span class="op">+</span> <span class="st">&quot;.&quot;</span></span>
+    <span id="cb6-113"><a href="#cb6-113"></a>        <span class="op">+</span> <span class="bu">str</span>(image_stamp.nsecs) <span class="op">+</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span></span>
+    <span id="cb6-114"><a href="#cb6-114"></a>      hi.write(ss)</span>
+    <span id="cb6-115"><a href="#cb6-115"></a></span>
+    <span id="cb6-116"><a href="#cb6-116"></a>      count <span class="op">+=</span> <span class="dv">1</span></span>
+    <span id="cb6-117"><a href="#cb6-117"></a></span>
+    <span id="cb6-118"><a href="#cb6-118"></a>    rate.sleep()</span>
+    <span id="cb6-119"><a href="#cb6-119"></a></span>
+    <span id="cb6-120"><a href="#cb6-120"></a>  h.close()</span>
+    <span id="cb6-121"><a href="#cb6-121"></a>  hi.close()</span></code></pre></div>
+    
+    <!--
+    Do not edit this page.
+    
+    References are automatically generated from the BibTex file (References.bib)
+    
+    ...which you should create using your reference manager.
+    -->
+    <h1 id="bibliography" class="unnumbered">Bibliography</h1>
+    <div id="refs" class="references" role="doc-bibliography">
+    <div id="ref-Fankhauser2014RobotCentricElevationMapping">
+    <p>Fankhauser, P. et al., 2014. Robot-centric elevation mapping with uncertainty estimates. In <em>International conference on climbing and walking robots (clawar)</em>.</p>
+    </div>
+    <div id="ref-Fankhauser2018ProbabilisticTerrainMapping">
+    <p>Fankhauser, P., Bloesch, M. &amp; Hutter, M., 2018. Probabilistic terrain mapping for mobile robots with uncertain localization. <em>IEEE Robotics and Automation Letters (RA-L)</em>, 3(4), pp.3019–3026.</p>
+    </div>
+    <div id="ref-guerrero:hal-01518756">
+    <p>Guerrero, J.A. et al., 2015. Towards LIDAR-RADAR based Terrain Mapping for Traversability Analysis. In <em>2015 IEEE International Workshop on Advanced Robotics and its Social Impacts (ARSO 2015)</em>. Lyon, France. Available at: <a href="https://hal.archives-ouvertes.fr/hal-01518756">https://hal.archives-ouvertes.fr/hal-01518756</a>.</p>
+    </div>
+    <div id="ref-hornung13auro">
+    <p>Hornung, A. et al., 2013. OctoMap: An efficient probabilistic 3D mapping framework based on octrees. <em>Autonomous Robots</em>. Available at: <a href="http://octomap.github.com">http://octomap.github.com</a>.</p>
+    </div>
+    <div id="ref-Kassir">
+    <p>Kassir, A. &amp; Peynot, T., 2010. Reliable automatic camera-laser calibration. In <em>Proceedings of the australasian conference on robotics and automation</em>.</p>
+    </div>
+    <div id="ref-RTAB-Map">
+    <p>Labbé, M. &amp; Michaud, F., 2019. RTAB-map as an open-source lidar and visual slam library for large-scale and long-term online operation. In <em>Journal of Field Robotics</em>. pp. 416–446.</p>
+    </div>
+    <div id="ref-ROS-wiki">
+    <p>Morgan Quigley, K.C., Brian Gerkey, 2009. ROS: An open-source robot operating system. In <em>Willow garage, menlo park, ca</em>.</p>
+    </div>
+    <div id="ref-OpenCV">
+    <p>OpenCV, 2019. OpenCV documentation. Available at: <a href="https://docs.opencv.org/master/index.html">https://docs.opencv.org/master/index.html</a>.</p>
+    </div>
+    <div id="ref-1979:ots">
+    <p>Otsu, N., 1979. A Threshold Selection Method from Gray-level Histograms. <em>IEEE Transactions on Systems, Man and Cybernetics</em>, 9(1), pp.62–66. Available at: <a href="http://dx.doi.org/10.1109/TSMC.1979.4310076">http://dx.doi.org/10.1109/TSMC.1979.4310076</a>.</p>
+    </div>
+    <div id="ref-Peynot">
+    <p>Peynot, T. &amp; Kassir, A., 2010. Laser-camera data discrepancies and reliable perception in outdoor robotics. In <em>Proceesdings of the ieee/rsj international conference on intelligent robots and systems</em>.</p>
+    </div>
+    <div id="ref-Redmon2016YouOL">
+    <p>Redmon, J. et al., 2016. You only look once: Unified, real-time object detection. <em>2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, pp.779–788.</p>
+    </div>
+    <div id="ref-Turtlebot3-e-manual">
+    <p>Robotis, 2019. Turtlebot3 e-manual. Available at: <a href="http://emanual.robotis.com/docs/en/platform/turtlebot3/overview/">http://emanual.robotis.com/docs/en/platform/turtlebot3/overview/</a>.</p>
+    </div>
+    <div id="ref-3D-SALM">
+    <p>Robotis-Japan, 2019. Turtlebot3 3D-slam using rtab-map with jetson tx2. <em>GitHub repository</em>. Available at: <a href="https://github.com/ROBOTIS-JAPAN-GIT/turtlebot3_slam_3d">https://github.com/ROBOTIS-JAPAN-GIT/turtlebot3_slam_3d</a>.</p>
+    </div>
+    <div id="ref-ROS-book">
+    <p>YoonSeok Pyo, R.J., HanCheol Cho, 2017. <em>ROS robot programming (en)</em>, ROBOTIS Co.,Ltd.</p>
+    </div>
+    </div>
+    <section class="footnotes" role="doc-endnotes">
+    <hr />
+    <ol>
+    <li id="fn1" role="doc-endnote"><p>https://github.com/ROBOTIS-JAPAN-GIT/turtlebot3_slam_3d<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn2" role="doc-endnote"><p>https://github.com/ANYbotics/elevation_mapping<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn3" role="doc-endnote"><p>http://octomap.github.io/<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn4" role="doc-endnote"><p>http://introlab.github.io/rtabmap/<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn5" role="doc-endnote"><p>http://wiki.ros.org/kinetic/Installation/Ubuntu<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn6" role="doc-endnote"><p>http://wiki.ros.org/ROS/Tutorials<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn7" role="doc-endnote"><p>http://emanual.robotis.com/docs/en/platform/turtlebot3/overview/<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn8" role="doc-endnote"><p>http://wiki.ros.org/navigation/Tutorials/SendingSimpleGoals<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn9" role="doc-endnote"><p>http://wiki.ros.org/rviz/Tutorials/Markers%3A%20Basic%20Shapes<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn10" role="doc-endnote"><p>https://github.com/IntelRealSense/librealsense/blob/development/doc/installation.md<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn11" role="doc-endnote"><p>https://linuxize.com/post/how-to-add-swap-space-on-ubuntu-18-04/<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn12" role="doc-endnote"><p>https://github.com/IntelRealSense/realsense-ros<a href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn13" role="doc-endnote"><p>https://www.thingiverse.com/thing:2749041<a href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn14" role="doc-endnote"><p>https://docs.opencv.org/trunk/d9/d61/tutorial_py_morphological_ops.html<a href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn15" role="doc-endnote"><p>http://www-personal.acfr.usyd.edu.au/akas9185/AutoCalib/index.html<a href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn16" role="doc-endnote"><p>http://wiki.ros.org/pointcloud_to_laserscan<a href="#fnref16" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    <li id="fn17" role="doc-endnote"><p>https://es.mathworks.com/help/robotics/ref/matchscans.html<a href="#fnref17" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+    </ol>
+    </section>
+    </div>
+        </body>
+</html>
+

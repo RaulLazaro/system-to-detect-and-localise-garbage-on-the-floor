@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="generator" content="pandoc" />
+    $for(author-meta)$
+        <meta name="author" content="$author-meta$" />
+    $endfor$
+    $if(date-meta)$
+        <meta name="date" content="$date-meta$" />
+    $endif$
+    <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+    $if(quotes)$
+        <style type="text/css">q { quotes: "GÇ£" "GÇ¥" "GÇÿ" "GÇÖ"; }</style>
+    $endif$
+    $if(highlighting-css)$
+        <style type="text/css">
+        $highlighting-css$
+        </style>
+    $endif$
+    $for(css)$
+        <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>
+    $endfor$
+    $if(math)$
+        $math$
+    $endif$
+    $for(header-includes)$
+        $header-includes$
+    $endfor$
+</head>
+<body>
+    $for(include-before)$
+        $include-before$
+    $endfor$
+    <a id="forkme_banner" href="https://github.com/RaulLazaro/system-to-detect-and-localise-garbage-on-the-floor">Ver en GitHub</a>
+    <section id="downloads">
+    <a class="pdf_download_link" href="../docs/thesis.pdf">Download pdf</a>
+    $if(toc)$
+        <div id="$idprefix$TOC">
+            $toc$
+        </div>
+    $endif$
+    $if(lof)$
+        <div id="$idprefix$LOF">
+            $lof$
+        </div>
+    $endif$
+    $if(lot)$
+        <div id="$idprefix$LOT">
+            $lot$
+        </div>
+    $endif$
+    <div class="container">
+    <div id="title-page">
+        <h1>System to detect and localise garbage on the floor</h1>
+        <h2>Raúl Lázaro Sánchez</h2>
+        <h3>Diepenbeek, BE <br>June 2019</h3>
+    </div>
+    $body$
+    </div>
+    $for(include-after)$
+        $include-after$
+    $endfor$
+    </body>
+</html>
+
